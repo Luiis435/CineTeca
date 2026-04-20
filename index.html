@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CineTeca - Login</title>
+    <title>CineTeca Pro</title>
     
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -22,295 +25,205 @@
         const db = getFirestore(app);
 
         let currentProfile = JSON.parse(localStorage.getItem('ct_profile')) || null;
+        let allMovies = [];
 
-        // --- LÓGICA DE LOGIN E REGISTRO ---
-        window.toggleAuth = () => {
-            const title = document.getElementById('auth-title');
-            const btn = document.getElementById('auth-btn');
-            const link = document.getElementById('auth-link');
-            if (btn.innerText === 'ENTRAR') {
-                title.innerText = 'CRIAR CONTA';
-                btn.innerText = 'REGISTRAR';
-                link.innerText = 'Já tem conta? Entrar';
-            } else {
-                title.innerText = 'LOGIN';
-                btn.innerText = 'ENTRAR';
-                link.innerText = 'Novo por aqui? Registre-se';
-            }
-        };
+        const tudum = new Audio('https://www.myinstants.com/media/sounds/netflix-tudum.mp3');
 
         window.handleAuth = async () => {
-            const user = document.getElementById('user-email').value;
-            const pass = document.getElementById('user-pass').value;
-            const btn = document.getElementById('auth-btn');
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            const btn = document.querySelector('.btn-main');
 
-            if(!user || !pass) return alert("Preencha todos os campos!");
+            if (!email || !pass) return alert("Por favor, preencha todos os campos.");
 
-            if (btn.innerText === 'REGISTRAR') {
-                // Criar nova conta
-                await addDoc(collection(db, "usuarios"), { user, pass });
-                alert("Conta criada! Agora faça login.");
-                toggleAuth();
-            } else {
-                // Fazer Login
-                const q = query(collection(db, "usuarios"), where("user", "==", user), where("pass", "==", pass));
-                const querySnapshot = await getDocs(q);
-                
-                if (!querySnapshot.empty || (user === "admin" && pass === "cinetecaadm")) {
-                    sessionStorage.setItem('isLogged', 'true');
-                    document.getElementById('auth-screen').style.display = 'none';
-                    document.getElementById('profile-screen').style.display = 'flex';
-                } else {
-                    alert("Usuário ou senha incorretos!");
-                }
+            btn.innerText = "Carregando...";
+            btn.disabled = true;
+
+            const q = query(collection(db, "usuarios"), where("email", "==", email), where("pass", "==", pass));
+            const snap = await getDocs(q);
+
+            if (!snap.empty || (email === "admin" && pass === "123")) {
+                tudum.play();
+                sessionStorage.setItem('ct_logged', 'true');
+                window.showProfileSelection();
+            } else { 
+                alert("Dados incorretos."); 
+                btn.innerText = "Entrar";
+                btn.disabled = false;
             }
         };
 
-        window.selectProfile = (name, type) => {
-            currentProfile = { name, type };
-            localStorage.setItem('ct_profile', JSON.stringify(currentProfile));
-            document.getElementById('profile-screen').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            document.getElementById('current-user-name').innerText = name;
-            renderLibrary(type);
+        window.showProfileSelection = () => {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.body.classList.remove('kids-theme'); // Reset cor ao voltar para perfis
         };
 
-        function renderLibrary(type) {
-            let q = query(collection(db, "videos"), orderBy("createdAt", "desc"));
-            if (type === 'infantil') q = query(collection(db, "videos"), where("rating", "==", "infantil"), orderBy("createdAt", "desc"));
+        window.selectProfile = (name, mode) => {
+            tudum.play();
+            currentProfile = { name, mode };
+            localStorage.setItem('ct_profile', JSON.stringify(currentProfile));
+            startApp();
+        };
 
-            onSnapshot(q, (snapshot) => {
-                const shelf = document.getElementById('shelf');
-                shelf.innerHTML = "";
-                snapshot.forEach(doc => {
-                    const v = doc.data();
-                    shelf.innerHTML += `
-                        <div class="movie-card" onclick="openPlayer('${v.url}', '${v.videoType}')">
-                            <img src="${v.thumb}">
-                            <h3>${v.title}</h3>
-                        </div>`;
-                });
+        function startApp() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            document.getElementById('user-name-display').innerText = currentProfile.name;
+            
+            // APLICA O TEMA AZUL SE FOR KIDS
+            if (currentProfile.mode === 'kids') {
+                document.body.classList.add('kids-theme');
+            } else {
+                document.body.classList.remove('kids-theme');
+            }
+            loadMovies();
+        }
+
+        function loadMovies() {
+            const q = query(collection(db, "videos"), orderBy("createdAt", "desc"));
+            onSnapshot(q, (snap) => {
+                allMovies = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderMovies(allMovies);
             });
         }
 
-                window.openPlayer = (url, type) => {
-            const target = document.getElementById('playerTarget');
-            target.innerHTML = "";
-            
-            // Força HTTPS e limpa espaços
-            const safeUrl = url.replace('http://', 'https://').trim();
-
-            if (type === 'iframe' || safeUrl.includes('superembed')) {
-                // Removido o atributo 'sandbox' restritivo para permitir que o player carregue os servidores de vídeo
-                target.innerHTML = `
-                    <iframe src="${safeUrl}" 
-                        style="width:100%; height:100%; border:none;" 
-                        allowfullscreen="true" 
-                        webkitallowfullscreen="true" 
-                        mozallowfullscreen="true"
-                        allow="autoplay; fullscreen; encrypted-media; picture-in-picture">
-                    </iframe>`;
-            } else {
-                target.innerHTML = `<video src="${safeUrl}" controls autoplay style="width:100%; height:100%;"></video>`;
-            }
-            document.getElementById('playerModal').style.display = 'flex';
+        window.renderMovies = (movies, title = "Populares") => {
+            const grid = document.getElementById('movie-grid');
+            document.getElementById('row-title').innerText = title;
+            grid.innerHTML = movies.map(m => `
+                <div class="movie-card" onclick="playVideo('${m.url}')">
+                    <img src="${m.thumb}">
+                    <div class="movie-info">${m.titulo || 'Sem título'}</div>
+                </div>
+            `).join('');
         };
 
+        window.playVideo = (url) => {
+            let embedUrl = url;
+            if (url.includes('v=')) embedUrl = `https://www.youtube.com/embed/${url.split('v=')[1].split('&')[0]}?autoplay=1`;
+            document.getElementById('player-target').innerHTML = `<iframe src="${embedUrl}" allowfullscreen allow="autoplay"></iframe>`;
+            document.getElementById('player-modal').style.display = 'flex';
         };
 
-        window.logout = () => { sessionStorage.clear(); localStorage.clear(); location.reload(); };
+        window.closePlayer = () => {
+            document.getElementById('player-modal').style.display = 'none';
+            document.getElementById('player-target').innerHTML = '';
+        };
+
+        window.toggleSidebar = () => {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
+        };
+
+        window.onload = () => {
+            if(sessionStorage.getItem('ct_logged') && currentProfile) startApp();
+            else if(sessionStorage.getItem('ct_logged')) window.showProfileSelection();
+            setTimeout(() => document.getElementById('loading-screen').classList.add('fade-out'), 2000);
+        };
     </script>
 
     <style>
-        :root { --accent: #E50914; }
-        body { background: #000; color: white; margin: 0; font-family: 'Arial', sans-serif; }
+        :root { --primary: #E50914; --bg: #000000; --kids: #00A8E1; --input-bg: #333333; }
         
-        /* TELA DE LOGIN ESTILIZADA */
-        #auth-screen { position: fixed; inset: 0; background: url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bca1-07e3f8eb14af/61661664-5a3c-4e8c-986b-f472855146c6/BR-pt-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg'); background-size: cover; display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .auth-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
-        .auth-card { position: relative; background: rgba(0,0,0,0.75); padding: 50px; border-radius: 8px; width: 350px; text-align: left; }
-        
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: none; background: #333; color: white; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        #auth-link { color: #b3b3b3; font-size: 0.9rem; cursor: pointer; display: block; margin-top: 15px; text-align: center; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; transition: background 0.5s ease; }
 
-        /* PERFIS E CONTEÚDO */
-        #profile-screen { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1500; }
-        header { padding: 15px; display: flex; align-items: center; background: #000; position: fixed; width: 100%; z-index: 100; box-sizing: border-box; }
-        .movie-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; padding: 80px 20px; }
-        .movie-card img { width: 100%; aspect-ratio: 2/3; border-radius: 4px; }
-        .modal { display: none; position: fixed; inset: 0; background: #000; z-index: 3000; }
+        /* TEMA KIDS AZUL */
+        body.kids-theme { background: #001e3c; }
+        body.kids-theme .logo-text { color: var(--kids); }
+        body.kids-theme .btn-main { background: var(--kids); }
+        body.kids-theme #sidebar { background: #001224; }
+
+        /* LOGIN PROFISSIONAL */
+        #auth-screen {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bca1-07e3f8eb14af/61661664-5a3c-4e8c-986b-f472855146c6/BR-pt-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+        }
+        .login-card { width: 100%; max-width: 400px; background: rgba(0, 0, 0, 0.75); padding: 40px 30px; border-radius: 8px; }
+        .input-group input { width: 100%; padding: 16px; background: var(--input-bg); border: none; border-radius: 5px; color: white; margin-bottom: 15px; font-size: 1rem; }
+        .btn-main { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 5px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+
+        /* PERFIS */
+        #profile-screen { display:none; flex-direction:column; align-items:center; justify-content:center; height:100vh; background: #000;}
+        .profile-box { width: 110px; height: 110px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; cursor: pointer; }
+
+        /* HEADER & GRID */
+        header { padding: 12px 20px; display: flex; align-items: center; background: rgba(0,0,0,0.95); position: sticky; top: 0; z-index: 1000; justify-content: space-between;}
+        .logo-text { color: var(--primary); font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; transition: 0.3s; }
+        .movie-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; }
+        .movie-card { border-radius: 4px; overflow: hidden; background: #1a1a1a; }
+        .movie-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+        .movie-info { padding: 8px; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* SIDEBAR */
+        #sidebar { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: #000; z-index: 5000; transition: 0.3s; padding: 25px; }
+        #sidebar.active { left: 0; }
+        #sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 4999; display: none; }
+        #sidebar-overlay.active { display: block; }
+
+        /* UTILS */
+        #loading-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 9999; transition: 0.8s; }
+        .fade-out { opacity: 0; visibility: hidden; }
+        #player-modal { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; z-index: 9000; }
     </style>
 </head>
 <body>
 
+    <div id="loading-screen"><h1 class="logo-text" style="font-size: 3.5rem;">CINETECA</h1></div>
+
     <div id="auth-screen">
-        <div class="auth-overlay"></div>
-        <div class="auth-card">
-            <h1 id="auth-title" style="margin-bottom: 20px;">LOGIN</h1>
-            <input type="text" id="user-email" placeholder="Usuário ou Email">
-            <input type="password" id="user-pass" placeholder="Senha">
-            <button class="btn-main" id="auth-btn" onclick="handleAuth()">ENTRAR</button>
-            <span id="auth-link" onclick="toggleAuth()">Novo por aqui? Registre-se</span>
+        <div class="logo-text" style="position: absolute; top: 25px; left: 25px; font-size: 2rem;">CINETECA</div>
+        <div class="login-card">
+            <h1 style="margin-top: 0;">Entrar</h1>
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email ou usuário">
+                <input type="password" id="pass" placeholder="Senha">
+            </div>
+            <button class="btn-main" onclick="handleAuth()">Entrar</button>
         </div>
     </div>
 
     <div id="profile-screen">
-        <h2>Quem está assistindo?</h2>
-        <div style="display:flex; gap:30px; margin-top:30px;">
-            <div onclick="selectProfile('Luis', 'adulto')" style="text-align:center; cursor:pointer">
-                <div style="width:100px; height:100px; background:#1e88e5; border-radius:4px; font-size:3rem; display:flex; align-items:center; justify-content:center">L</div>
-                <p>Luis</p>
+        <h2 style="margin-bottom:40px; font-size: 1.8rem;">Quem está assistindo?</h2>
+        <div style="display:flex; gap:25px">
+            <div onclick="selectProfile('Adulto', 'adult')" style="text-align:center">
+                <div class="profile-box" style="background:var(--primary);">A</div>
+                <p style="color:#888; margin-top:10px">Adulto</p>
             </div>
-            <div onclick="selectProfile('Kids', 'infantil')" style="text-align:center; cursor:pointer">
-                <div style="width:100px; height:100px; background:#ffca28; border-radius:4px; font-size:3rem; display:flex; align-items:center; justify-content:center">K</div>
-                <p>Kids</p>
+            <div onclick="selectProfile('Kids', 'kids')" style="text-align:center">
+                <div class="profile-box" style="background:var(--kids);">K</div>
+                <p style="color:#888; margin-top:10px">Kids</p>
             </div>
         </div>
     </div>
 
-    <div id="app-content" style="display:none">
+    <div id="main-app" style="display:none;">
         <header>
-            <div style="color:var(--accent); font-weight:bold; font-size:1.5rem; margin-right:20px">C</div>
-            <div id="current-user-name" style="flex:1"></div>
-            <button onclick="logout()" style="background:none; border:none; color:white; cursor:pointer">Sair</button>
+            <div onclick="toggleSidebar()" style="font-size:1.5rem; cursor:pointer">☰</div>
+            <div class="logo-text">CINETECA</div>
+            <div id="user-name-display" style="font-size:0.8rem; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px;"></div>
         </header>
-        <div class="movie-row" id="shelf"></div>
+        <h3 id="row-title" style="margin: 20px 15px 10px; font-weight: 500; color: #eee;"></h3>
+        <div class="movie-grid" id="movie-grid"></div>
     </div>
 
-    <div id="playerModal" class="modal">
-        <span onclick="document.getElementById('playerModal').style.display='none'; document.getElementById('playerTarget').innerHTML=''" style="position:absolute; top:20px; right:20px; font-size:2rem; cursor:pointer; color:white; z-index:4000">✕</span>
-        <div id="playerTarget" style="width:100%; height:100%"></div>
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar">
+        <div class="logo-text" style="margin-bottom: 35px;">CINETECA</div>
+        <div style="padding: 15px 0; border-bottom: 1px solid #222;" onclick="location.reload()">Início</div>
+        <div style="padding: 15px 0; border-bottom: 1px solid #222;" onclick="showProfileSelection()">Trocar Perfil</div>
+        <div style="padding: 15px 0; color: var(--primary);" onclick="sessionStorage.clear(); location.reload()">Sair</div>
     </div>
 
-</body>
-</html>            } else {
-                const url = document.getElementById('vUrl').value;
-                finalUrl = url.replace("watch?v=", "embed/");
-            }
-
-            await addDoc(videosCol, { title, thumb, url: finalUrl, videoType: type, createdAt: new Date() });
-            document.getElementById('adminModal').style.display = 'none';
-        };
-
-        function renderLibrary() {
-            onSnapshot(query(videosCol, orderBy("createdAt", "desc")), (snapshot) => {
-                const shelf = document.getElementById('shelf');
-                shelf.innerHTML = "";
-                snapshot.forEach((doc) => {
-                    const v = doc.data();
-                    shelf.innerHTML += `
-                        <div class="video-card" onclick="openPlayer('${v.url}', '${v.videoType}')">
-                            <img src="${v.thumb || 'https://via.placeholder.com/300x160/222/fff?text=CineTeca'}">
-                            <h3>${v.title}</h3>
-                        </div>`;
-                });
-            });
-        }
-
-        window.openPlayer = (url, type) => {
-            const target = document.getElementById('playerTarget');
-            target.innerHTML = (type === 'file') 
-                ? `<video src="${url}" controls autoplay style="width:100%"></video>`
-                : `<iframe src="${url}" frameborder="0" allowfullscreen autoplay></iframe>`;
-            document.getElementById('playerModal').style.display = 'flex';
-        };
-    </script>
-
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica Neue', Arial, sans-serif; }
-        body { background: #141414; color: white; }
-
-        /* LOADER */
-        #loader { position: fixed; width: 100%; height: 100vh; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: 1s; }
-        .loader-logo { font-size: 3.5rem; font-weight: bold; color: #E50914; margin-bottom: 25px; animation: pulse 2s infinite; }
-        .netflix-spinner { width: 45px; height: 45px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #E50914; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-
-        /* AUTH */
-        #auth-screen { height: 100vh; display: flex; justify-content: center; align-items: center; background: #000; }
-        .auth-box { background: rgba(20,20,20,0.98); padding: 40px; border-radius: 8px; width: 400px; border: 1px solid #333; text-align: center; }
-        .auth-box h2 { text-align: left; margin-bottom: 20px; }
-
-        /* BOTÕES */
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #333; border: none; color: white; border-radius: 4px; }
-        .btn-red { background: #E50914; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; margin-top: 10px; }
-        .btn-google { background: white; color: #333; border: none; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-link { background: none; border: none; color: #777; cursor: pointer; font-size: 0.85rem; margin-top: 15px; text-decoration: underline; }
-
-        /* APP */
-        header { padding: 15px 4%; display: flex; justify-content: space-between; align-items: center; background: #000; position: fixed; width: 100%; z-index: 100; }
-        .logo { color: #E50914; font-size: 1.8rem; font-weight: bold; }
-        .video-container { display: flex; gap: 15px; overflow-x: auto; padding: 120px 4% 20px; }
-        .video-card { min-width: 280px; cursor: pointer; transition: 0.3s; }
-        .video-card:hover { transform: scale(1.05); }
-        .video-card img { width: 100%; height: 160px; object-fit: cover; border-radius: 4px; }
-
-        .modal, .player-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
-        iframe, video { width: 90%; aspect-ratio: 16/9; max-width: 1000px; }
-    </style>
-</head>
-<body>
-
-    <div id="loader">
-        <div class="loader-logo">CineTeca</div>
-        <div class="netflix-spinner"></div>
-    </div>
-
-    <div id="auth-screen">
-        <div class="auth-box" id="login-section">
-            <h2>Entrar</h2>
-            <input type="email" id="auth-email" placeholder="E-mail">
-            <input type="password" id="auth-pass" placeholder="Senha">
-            <button class="btn-red" onclick="handleAuth('login')">Acessar</button>
-            
-            <button class="btn-google" onclick="loginGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Entrar com Google
-            </button>
-
-            <button class="btn-link" onclick="resetPassword()">Esqueci minha senha</button>
-            <p style="margin-top:20px; font-size:0.85rem; color:#777">Novo por aqui? <b style="color:white; cursor:pointer" onclick="document.getElementById('login-section').style.display='none'; document.getElementById('register-section').style.display='block'">Criar conta</b></p>
-        </div>
-
-        <div class="auth-box" id="register-section" style="display:none">
-            <h2>Criar Conta</h2>
-            <input type="email" id="user-reg-email" placeholder="Seu E-mail">
-            <input type="password" id="user-reg-pass" placeholder="Crie uma Senha">
-            <button class="btn-red" onclick="handleAuth('signup')">Registrar</button>
-            <p style="margin-top:20px; font-size:0.85rem; color:#777" onclick="location.reload()" style="cursor:pointer">Já tenho conta. <b>Voltar</b></p>
-        </div>
-    </div>
-
-    <div id="app-content" style="display: none;">
-        <header>
-            <div class="logo">CineTeca</div>
-            <div>
-                <button id="btn-admin" onclick="document.getElementById('adminModal').style.display='flex'" style="display:none; background:#333; border:none; color:white; padding:8px 15px; border-radius:4px; cursor:pointer; font-weight:bold">PAINEL ADM</button>
-                <button onclick="logout()" style="background:none; border:none; color:#777; margin-left:15px; cursor:pointer">Sair</button>
-            </div>
-        </header>
-        <div class="video-container" id="shelf"></div>
-    </div>
-
-    <div id="adminModal" class="modal">
-        <div class="auth-box">
-            <h3>Gerenciar CineTeca</h3>
-            <input type="text" id="vTitle" placeholder="Título">
-            <input type="text" id="vThumb" placeholder="URL da Capa">
-            <select id="vType" onchange="document.getElementById('div-url').style.display=this.value==='link'?'block':'none'; document.getElementById('div-file').style.display=this.value==='file'?'block':'none';">
-                <option value="link">Link (YouTube)</option>
-                <option value="file">Galeria (Local)</option>
-            </select>
-            <div id="div-url"><input type="text" id="vUrl" placeholder="Link do vídeo"></div>
-            <div id="div-file" style="display:none"><input type="file" id="vFile" accept="video/*"></div>
-            <button class="btn-red" onclick="saveVideo()">Publicar</button>
-            <button onclick="document.getElementById('adminModal').style.display='none'" class="btn-link">Fechar</button>
-        </div>
-    </div>
-
-    <div id="playerModal" class="player-modal" onclick="this.style.display='none'; document.getElementById('playerTarget').innerHTML=''">
-        <div id="playerTarget" style="width:100%; display:flex; justify-content:center"></div>
+    <div id="player-modal">
+        <div onclick="closePlayer()" style="padding:20px; font-weight:bold; cursor:pointer">✕ VOLTAR</div>
+        <div id="player-target" style="flex-grow:1"></div>
     </div>
 
 </body>
