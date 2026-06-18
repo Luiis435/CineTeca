@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Briques & Finanças | Mobile Lab</title>
+    <title>Briques & Finanças | Dashboard Profissional</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -14,75 +14,169 @@
             --bg-card: #0a0a0a;
             --accent-green: #50C878;
             --accent-red: #FF4D4D;
-            --accent-blue: #6495ED;
-            --accent-purple: #9370DB;
             --text-main: #ffffff;
             --text-dim: #a0a0a0;
             --border: #1a1a1a;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; min-height: 100vh; }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #333; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
         /* --- TELA DE LOGIN --- */
-        #login-screen { height: 100vh; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at top right, rgba(80, 200, 120, 0.1), transparent); }
-        .login-card { background: var(--bg-card); border: 1px solid var(--border); padding: 50px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; }
-        .login-card h1 { font-family: 'Urbanist', sans-serif; font-size: 2.5rem; margin-bottom: 10px; color: var(--accent-green); }
+        #login-screen {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at top right, rgba(80, 200, 120, 0.1), transparent);
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 50px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .login-card h1 {
+            font-family: 'Urbanist', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--accent-green);
+        }
+
         .login-card p { color: var(--text-dim); margin-bottom: 30px; font-size: 0.9rem; }
 
-        input, select { width: 100%; padding: 14px; margin-bottom: 15px; background: #000; border: 1px solid var(--border); border-radius: 8px; color: white; outline: none; font-size: 0.95rem; }
-        input:focus, select:focus { border-color: var(--accent-green); }
+        input, select {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            transition: 0.3s;
+        }
 
-        .btn-primary { width: 100%; padding: 15px; background: var(--accent-green); color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: 'Urbanist', sans-serif; text-transform: uppercase; transition: 0.3s; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(80, 200, 122, 0.3); }
+        input:focus { border-color: var(--accent-green); }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent-green);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Urbanist', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(80, 200, 192, 0.3); }
 
         /* --- APP PRINCIPAL --- */
         #app-screen { display: none; }
-        header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1500px; margin: 40px auto; padding: 0 20px; }
 
-        /* Dashboard */
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 40px; }
-        .kpi-card { background: var(--bg-card); border: 1px solid var(--border); padding: 25px; border-radius: 16px; }
-        .kpi-card h3 { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; }
-        .kpi-card .value { font-size: 2rem; font-weight: 700; margin: 10px 0; font-family: 'Urbanist', sans-serif; }
+        header {
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+
+        /* Dashboard KPIs */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 16px;
+            transition: 0.3s;
+        }
+
+        .kpi-card:hover { border-color: var(--accent-green); }
+
+        .kpi-card h3 { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        .kpi-card .value { font-size: 2.2rem; font-weight: 700; margin: 10px 0; font-family: 'Urbanist', sans-serif; }
+        
         .value.gain { color: var(--accent-green); }
         .value.loss { color: var(--accent-red); }
 
-        /* Grid Layout */
-        .main-grid { display: grid; grid-template-columns: 1fr 1.8fr; gap: 30px; margin-bottom: 40px; }
-        @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } }
+        /* Seção Principal */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
 
-        .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 25px; height: fit-content; margin-bottom: 25px; }
-        .panel h2 { font-family: 'Urbanist', sans-serif; margin-bottom: 20px; border-left: 4px solid var(--accent-green); padding-left: 15px; font-size: 1.3rem; }
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
 
-        .search-container { margin-bottom: 15px; }
-        .search-input { padding: 10px 14px; margin-bottom: 0; font-size: 0.85rem; }
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+        }
 
-        /* Tabelas */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px 15px; color: var(--accent-green); font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
-        td { padding: 14px 15px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        .panel h2 { font-family: 'Urbanist', sans-serif; margin-bottom: 25px; border-left: 4px solid var(--accent-green); padding-left: 15px; }
 
-        .badge { padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        /* Tabela Profissional */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 15px; color: var(--accent-green); font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
         .badge-venda { background: rgba(80, 200, 120, 0.1); color: var(--accent-green); border: 1px solid var(--accent-green); }
         .badge-compra { background: rgba(255, 77, 77, 0.1); color: var(--accent-red); border: 1px solid var(--accent-red); }
-        .badge-troca { background: rgba(100, 149, 237, 0.1); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
-        .badge-reparo { background: rgba(147, 112, 219, 0.1); color: var(--accent-purple); border: 1px solid var(--accent-purple); }
+        .badge-troca { background: rgba(100, 149, 237, 0.1); color: #6495ED; border: 1px solid #6495ED; }
 
-        .btn-action { background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; transition: 0.3s; margin-left: 10px; font-weight: 500; }
-        .btn-action.sell:hover { color: var(--accent-green); }
-        .btn-action.delete:hover { color: var(--accent-red); }
-        .btn-action.undo:hover { color: var(--accent-blue); }
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #444;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-delete:hover { color: var(--accent-red); }
 
-        .logout-link { color: var(--text-dim); text-decoration: none; cursor: pointer; }
+        .logout-link { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; cursor: pointer; }
         .logout-link:hover { color: var(--accent-green); }
+
     </style>
 </head>
 <body>
@@ -90,18 +184,18 @@
     <div id="login-screen">
         <div class="login-card">
             <h1>B&F</h1>
-            <p>Briques, Finanças & Laboratório Técnico</p>
+            <p>Gerenciador Privado de Ativos</p>
             <input type="text" id="username" placeholder="Usuário">
             <input type="password" id="password" placeholder="Senha">
-            <button class="btn-primary" onclick="handleLogin()">Entrar no Sistema</button>
-            <p id="error-msg" style="color: var(--accent-red); margin-top: 15px; display: none;">Acesso Negado</p>
+            <button class="btn-primary" onclick="handleLogin()">Acessar Painel</button>
+            <p id="error-msg" style="color: var(--accent-red); margin-top: 15px; display: none;">Credenciais Inválidas</p>
         </div>
     </div>
 
     <div id="app-screen">
         <header>
             <div style="font-family: 'Urbanist'; font-weight: 700; font-size: 1.5rem;">
-                BRIQUES <span style="color: var(--accent-green);">&</span> FINANÇAS <span style="color: var(--accent-purple); font-size: 1rem; font-weight:400;">| LAB</span>
+                BRIQUES <span style="color: var(--accent-green);">&</span> FINANÇAS
             </div>
             <div>
                 <span id="user-display" style="margin-right: 20px; font-weight: 500;"></span>
@@ -112,364 +206,152 @@
         <div class="container">
             <div class="dashboard">
                 <div class="kpi-card">
-                    <h3>Faturamento (Vendas)</h3>
-                    <div class="value gain" id="dash-faturamento">R$ 0,00</div>
+                    <h3>Total em Vendas</h3>
+                    <div class="value gain" id="dash-lucro">R$ 0,00</div>
+                    <div style="color: var(--text-dim); font-size: 0.8rem;">Entrada de Capital</div>
                 </div>
                 <div class="kpi-card">
-                    <h3>Investido em Peças</h3>
-                    <div class="value" id="dash-pecas" style="color: var(--accent-purple);">R$ 0,00</div>
+                    <h3>Custos de Compra</h3>
+                    <div class="value loss" id="dash-perda">R$ 0,00</div>
+                    <div style="color: var(--text-dim); font-size: 0.8rem;">Saída de Capital</div>
                 </div>
-                <div class="kpi-card">
-                    <h3>Custos de Aquisição</h3>
-                    <div class="value loss" id="dash-custos">R$ 0,00</div>
-                </div>
-                <div class="kpi-card">
-                    <h3>Lucro Líquido Real</h3>
-                    <div class="value" id="dash-lucro-real">R$ 0,00</div>
+                <div class="kpi-card" id="saldo-container">
+                    <h3>Saldo Líquido</h3>
+                    <div class="value" id="dash-saldo">R$ 0,00</div>
+                    <div style="color: var(--text-dim); font-size: 0.8rem;">Resultado Consolidado</div>
                 </div>
             </div>
 
             <div class="main-grid">
-                <div>
-                    <div class="panel">
-                        <h2 style="border-left-color: var(--accent-red);">1. Adquirir Aparelho / Item</h2>
-                        <form onsubmit="addAcquisition(event)">
-                            <input type="text" id="desc" placeholder="Ex: iPhone 11 Quebrado" required>
-                            <input type="number" id="val" step="0.01" placeholder="Custo de Aquisição (R$)" required>
-                            <button type="submit" class="btn-primary" style="background: var(--accent-red); color: #fff;">Pôr no Estoque</button>
-                        </form>
-                    </div>
+                <div class="panel">
+                    <h2>Nova Operação</h2>
+                    <form id="finance-form" onsubmit="addTransaction(event)">
+                        <label style="color: var(--text-dim); font-size: 0.8rem;">TIPO DE NEGÓCIO</label>
+                        <select id="tipo">
+                            <option value="Venda">Venda (Ganho)</option>
+                            <option value="Compra">Compra (Gasto)</option>
+                            <option value="Troca">Brique (Troca)</option>
+                        </select>
 
-                    <div class="panel">
-                        <h2 style="border-left-color: var(--accent-purple);">2. Adicionar Conserto / Peças</h2>
-                        <form onsubmit="executeReparo(event)">
-                            <label style="color: var(--text-dim); font-size: 0.8rem;">SELECIONE O APARELHO NO ESTOQUE</label>
-                            <select id="reparo-item-id" required>
-                                <option value="">-- Escolha o Aparelho --</option>
-                            </select>
-                            <input type="number" id="reparo-custo" step="0.01" placeholder="Custo da Peça (Ex: Tela R$ 180)" required>
-                            <input type="text" id="reparo-detalhe" placeholder="O que foi feito? (Ex: Troca de Tela e Bateria)">
-                            <button type="submit" class="btn-primary" style="background: var(--accent-purple);">Acumular Custo de Reparo</button>
-                        </form>
-                    </div>
+                        <label style="color: var(--text-dim); font-size: 0.8rem;">DESCRIÇÃO DO ATIVO</label>
+                        <input type="text" id="desc" placeholder="Ex: Moto Honda, Notebook..." required>
 
-                    <div class="panel">
-                        <h2 style="border-left-color: var(--accent-blue);">3. Registrar Brique (Troca)</h2>
-                        <form onsubmit="executeBrique(event)">
-                            <label style="color: var(--text-dim); font-size: 0.8rem;">O QUE VOCÊ VAI DAR DE SEU ESTOQUE?</label>
-                            <select id="brique-item-antigo" required>
-                                <option value="">-- Escolha o Aparelho --</option>
-                            </select>
-                            <input type="text" id="brique-item-novo" placeholder="O que vai receber (Ex: Moto G22 + R$100 volta)" required>
-                            <input type="number" id="brique-torna" step="0.01" value="0" placeholder="Torna paga por você (0 se não deu nada)">
-                            <button type="submit" class="btn-primary" style="background: var(--accent-blue);">Concluir Permuta</button>
-                        </form>
-                    </div>
+                        <label style="color: var(--text-dim); font-size: 0.8rem;">VALOR DA OPERAÇÃO (R$)</label>
+                        <input type="number" id="val" step="0.01" placeholder="0.00" required>
+
+                        <button type="submit" class="btn-primary">Registrar Ativo</button>
+                    </form>
                 </div>
 
                 <div class="panel">
-                    <h2>Bancada Atual / Itens Disponíveis</h2>
-                    <div class="search-container">
-                        <input type="text" id="search-inventory" class="search-input" placeholder="🔍 Buscar na bancada..." oninput="render()">
-                    </div>
+                    <h2>Histórico de Ativos</h2>
                     <div style="overflow-x: auto;">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Origem</th>
-                                    <th>Aparelho / Item</th>
-                                    <th>Custo Total</th>
-                                    <th style="text-align: right;">Ação</th>
+                                    <th>Status</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                    <th></th>
                                 </tr>
                             </thead>
-                            <tbody id="inventory-body"></tbody>
+                            <tbody id="table-body">
+                                </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-
-            <div class="panel">
-                <h2>Livro de Registros Fechados & Lucros Obtidos</h2>
-                <div class="search-container">
-                    <input type="text" id="search-history" class="search-input" placeholder="🔍 Buscar no histórico..." oninput="render()">
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Item / Histórico de Manutenções</th>
-                                <th>Investimento Total</th>
-                                <th>Valor de Venda</th>
-                                <th>Lucro Líquido</th>
-                                <th style="text-align: right;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
     </div>
 
     <script>
+        // CONFIGURAÇÕES DE USUÁRIO (Defina aqui seu login único)
         const MY_USER = "admin";
         const MY_PASS = "1234";
 
-        let inventario = JSON.parse(localStorage.getItem('lab_inventory')) || [];
-        let historicoGeral = JSON.parse(localStorage.getItem('lab_history')) || [];
+        let db = JSON.parse(localStorage.getItem('bf_data')) || [];
 
         function handleLogin() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
+            
             if(u === MY_USER && p === MY_PASS) {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-screen').style.display = 'block';
-                document.getElementById('user-display').innerText = `Técnico: ${u}`;
+                document.getElementById('user-display').innerText = `Mestre: ${u}`;
                 render();
             } else {
                 document.getElementById('error-msg').style.display = 'block';
             }
         }
 
-        function logout() { location.reload(); }
+        function logout() {
+            location.reload();
+        }
 
-        function addAcquisition(e) {
+        function addTransaction(e) {
             e.preventDefault();
-            const item = {
+            const transaction = {
                 id: Date.now(),
-                tipo: 'Compra',
+                tipo: document.getElementById('tipo').value,
                 desc: document.getElementById('desc').value,
-                custoAquisicao: parseFloat(document.getElementById('val').value),
-                custoPecas: 0,
-                historico: 'Adquirido cru.'
+                val: parseFloat(document.getElementById('val').value)
             };
-            inventario.push(item);
-            save(); render(); e.target.reset();
+            db.push(transaction);
+            save();
+            render();
+            e.target.reset();
         }
 
-        function executeReparo(e) {
-            e.preventDefault();
-            const id = parseInt(document.getElementById('reparo-item-id').value);
-            const custoPeca = parseFloat(document.getElementById('reparo-custo').value);
-            const detalhe = document.getElementById('reparo-detalhe').value || 'Reparo executado';
-
-            if(!id) { alert("Selecione um aparelho!"); return; }
-
-            const item = inventario.find(i => i.id === id);
-            if(!item) return;
-
-            // Aloca corretamente o custo na gaveta correta de peças sem duplicar na aquisição
-            item.custoPecas += custoPeca;
-            item.historico += ` + [Reparo: ${detalhe} (Peça: R$ ${custoPeca})]`;
-
-            // O histórico geral registra a movimentação isolada de saída para compra de peça
-            historicoGeral.push({
-                id: Date.now(),
-                tipo: 'Reparo',
-                desc: `Gasto com Peça para [${item.desc}]: ${detalhe}`,
-                custoBase: custoPeca,
-                faturamento: 0,
-                lucro: -custoPeca,
-                isReparo: true,
-                parentAparelhoId: item.id // Vincula ao aparelho caso queira rastrear
-            });
-
-            save(); render(); e.target.reset();
+        function deleteItem(id) {
+            db = db.filter(item => item.id !== id);
+            save();
+            render();
         }
 
-        function executeBrique(e) {
-            e.preventDefault();
-            const idAntigo = parseInt(document.getElementById('brique-item-antigo').value);
-            const itemNovoDesc = document.getElementById('brique-item-novo').value;
-            const tornaPaga = parseFloat(document.getElementById('brique-torna').value) || 0;
-
-            if(!idAntigo) { alert("Selecione o aparelho que você dará na troca!"); return; }
-
-            const itemAntigo = inventario.find(i => i.id === idAntigo);
-            if(!itemAntigo) return;
-
-            // O novo item herda os custos totais acumulados do antigo até aqui como seu novo custo de aquisição
-            const novoItem = {
-                id: Date.now(),
-                tipo: 'Troca',
-                desc: itemNovoDesc,
-                custoAquisicao: itemAntigo.custoAquisicao + itemAntigo.custoPecas + tornaPaga,
-                custoPecas: 0,
-                historico: `Vindo de troca por [${itemAntigo.desc}] (Histórico anterior: ${itemAntigo.historico})`
-            };
-
-            historicoGeral.push({
-                id: Date.now(),
-                tipo: 'Brique',
-                desc: `Permuta: Deixou [${itemAntigo.desc}] -> Pegou [${itemNovoDesc}]`,
-                custoBase: tornaPaga,
-                faturamento: 0,
-                lucro: -tornaPaga,
-                isBrique: true
-            });
-
-            inventario = inventario.filter(i => i.id !== idAntigo);
-            inventario.push(novoItem);
-            save(); render(); e.target.reset();
-        }
-
-        function sellItem(id) {
-            const item = inventario.find(i => i.id === id);
-            if (!item) return;
-
-            const custoTotal = item.custoAquisicao + item.custoPecas;
-            const valorVendaStr = prompt(`Preço final de venda para "${item.desc}":\nCusto Total Acumulado: R$ ${custoTotal.toFixed(2)} (Aquisição: R$ ${item.custoAquisicao.toFixed(2)} | Peças: R$ ${item.custoPecas.toFixed(2)})`);
-            
-            if (valorVendaStr === null) return;
-            const valorVenda = parseFloat(valorVendaStr);
-            if (isNaN(valorVenda) || valorVenda < 0) { alert("Valor inválido."); return; }
-
-            historicoGeral.push({
-                id: Date.now(),
-                tipo: 'Venda',
-                desc: `${item.desc} | Trajeto: ${item.historico}`,
-                custoBase: item.custoAquisicao, 
-                custoPecas: item.custoPecas,
-                faturamento: valorVenda,
-                lucro: valorVenda - custoTotal,
-                isVenda: true,
-                backupItem: item // Salva uma cópia do objeto caso haja estorno
-            });
-
-            inventario = inventario.filter(i => i.id !== id);
-            save(); render();
-        }
-
-        function undoVenda(id) {
-            const op = historicoGeral.find(h => h.id === id);
-            if(!op || !op.isVenda) return;
-
-            if(confirm(`Deseja estornar a venda de "${op.backupItem.desc}"? O aparelho voltará para a bancada com seus custos.`)) {
-                inventario.push(op.backupItem);
-                historicoGeral = historicoGeral.filter(h => h.id !== id);
-                save(); render();
-            }
-        }
-
-        function deleteInventory(id) { 
-            if(confirm("Deseja mesmo remover permanentemente este item do estoque?")) {
-                inventario = inventario.filter(i => i.id !== id); 
-                save(); render(); 
-            }
-        }
-        
-        function deleteHistory(id) { 
-            if(confirm("Deseja apagar permanentemente este registro financeiro do livro?")) {
-                historicoGeral = historicoGeral.filter(h => h.id !== id); 
-                save(); render(); 
-            }
-        }
-        
-        function save() { 
-            localStorage.setItem('lab_inventory', JSON.stringify(inventario)); 
-            localStorage.setItem('lab_history', JSON.stringify(historicoGeral)); 
+        function save() {
+            localStorage.setItem('bf_data', JSON.stringify(db));
         }
 
         function render() {
-            const invBody = document.getElementById('inventory-body');
-            const selectReparo = document.getElementById('reparo-item-id');
-            const selectBrique = document.getElementById('brique-item-antigo');
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
             
-            const searchInvTerm = document.getElementById('search-inventory').value.toLowerCase();
-            const searchHistTerm = document.getElementById('search-history').value.toLowerCase();
+            let v = 0; // Vendas
+            let c = 0; // Compras
 
-            invBody.innerHTML = '';
-            selectReparo.innerHTML = '<option value="">-- Escolha o Aparelho --</option>';
-            selectBrique.innerHTML = '<option value="">-- Escolha o Aparelho --</option>';
+            db.forEach(item => {
+                if(item.tipo === 'Venda') v += item.val;
+                if(item.tipo === 'Compra') c += item.val;
 
-            // 1. RENDERIZAÇÃO DA BANCADA (ESTOQUE)
-            inventario.forEach(item => {
-                const custoTotal = item.custoAquisicao + item.custoPecas;
-                
-                // Preenche selects de formulários independente de filtros de busca da tabela
-                selectReparo.innerHTML += `<option value="${item.id}">${item.desc} (Total: R$ ${custoTotal.toFixed(2)})</option>`;
-                selectBrique.innerHTML += `<option value="${item.id}">${item.desc}</option>`;
+                const badgeClass = item.tipo === 'Venda' ? 'badge-venda' : (item.tipo === 'Compra' ? 'badge-compra' : 'badge-troca');
 
-                // Aplica filtro de busca da bancada se houver termo digitado
-                if(item.desc.toLowerCase().includes(searchInvTerm) || item.historico.toLowerCase().includes(searchInvTerm)) {
-                    const badgeClass = item.tipo === 'Compra' ? 'badge-compra' : 'badge-troca';
-                    invBody.innerHTML += `
-                        <tr>
-                            <td><span class="badge ${badgeClass}">${item.tipo}</span></td>
-                            <td><strong>${item.desc}</strong><br><span style="font-size:0.75rem; color:var(--text-dim)">${item.historico}</span></td>
-                            <td style="font-weight:600;">R$ ${custoTotal.toFixed(2)}<br><span style="font-size:0.7rem; font-weight:normal; color:var(--text-dim)">Aquis: R$ ${item.custoAquisicao.toFixed(2)} | Peças: R$ ${item.custoPecas.toFixed(2)}</span></td>
-                            <td style="text-align:right; white-space:nowrap;">
-                                <button class="btn-action sell" onclick="sellItem(${item.id})"><i class="fa-solid fa-cash-register"></i> Vender</button>
-                                <button class="btn-action delete" onclick="deleteInventory(${item.id})"><i class="fa-solid fa-trash-can"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                }
+                tbody.innerHTML += `
+                    <tr>
+                        <td><span class="badge ${badgeClass}">${item.tipo}</span></td>
+                        <td style="color: #eee">${item.desc}</td>
+                        <td style="font-weight: 600">R$ ${item.val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                        <td><button class="btn-delete" onclick="deleteItem(${item.id})"><i class="fa-solid fa-trash-can"></i></button></td>
+                    </tr>
+                `;
             });
 
-            // 2. RENDERIZAÇÃO DO LIVRO DE REGISTROS (HISTÓRICO) & MATEMÁTICA DO DASHBOARD
-            const histBody = document.getElementById('history-body');
-            histBody.innerHTML = '';
+            const saldo = v - c;
             
-            let faturamento = 0;
-            let investidoPecas = 0;
-            let custosAquisicao = 0;
-            let lucroLiquidoReal = 0;
-
-            historicoGeral.forEach(op => {
-                // Cálculo das Gavetas Financeiras (Independente de busca na tela)
-                if(op.isReparo) {
-                    investidoPecas += op.custoBase;
-                    lucroLiquidoReal -= op.custoBase; // Subtrai direto das suas despesas correntes de caixa
-                } else if(op.isBrique) {
-                    custosAquisicao += op.custoBase; 
-                    lucroLiquidoReal -= op.custoBase; // Gastos com torna diminuem seu lucro imediato
-                } else if(op.isVenda) {
-                    faturamento += op.faturamento;
-                    custosAquisicao += op.custoBase;
-                    investidoPecas += op.custoPecas;
-                    lucroLiquidoReal += op.lucro;
-                }
-
-                // Exibe as linhas da tabela aplicando o filtro de busca do histórico
-                if(op.desc.toLowerCase().includes(searchHistTerm)) {
-                    let badgeHtml = `<span class="badge badge-venda">Venda</span>`;
-                    let acoesHtml = `<button class="btn-action undo" title="Estornar Venda e voltar para bancada" onclick="undoVenda(${op.id})"><i class="fa-solid fa-rotate-left"></i> Estornar</button>`;
-                    
-                    if(op.isReparo) {
-                        badgeHtml = `<span class="badge badge-reparo">Peça</span>`;
-                        acoesHtml = `<button class="btn-action delete" onclick="deleteHistory(${op.id})"><i class="fa-solid fa-trash-can"></i></button>`;
-                    }
-                    if(op.isBrique) {
-                        badgeHtml = `<span class="badge badge-troca">Brique</span>`;
-                        acoesHtml = `<button class="btn-action delete" onclick="deleteHistory(${op.id})"><i class="fa-solid fa-trash-can"></i></button>`;
-                    }
-
-                    let totalInvestidoLinha = op.isVenda ? (op.custoBase + op.custoPecas) : op.custoBase;
-
-                    histBody.innerHTML += `
-                        <tr>
-                            <td>${badgeHtml}</td>
-                            <td style="color:#eee; font-size:0.85rem">${op.desc}</td>
-                            <td style="color:var(--text-dim)">R$ ${totalInvestidoLinha.toFixed(2)}</td>
-                            <td>${op.faturamento > 0 ? 'R$ ' + op.faturamento.toFixed(2) : '--'}</td>
-                            <td style="color:${op.lucro >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;">R$ ${op.lucro.toFixed(2)}</td>
-                            <td style="text-align:right;">${acoesHtml}</td>
-                        </tr>
-                    `;
-                }
-            });
-
-            // Atualiza os painéis do Dashboard com os valores calculados
-            document.getElementById('dash-faturamento').innerText = `R$ ${faturamento.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-            document.getElementById('dash-pecas').innerText = `R$ ${investidoPecas.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-            document.getElementById('dash-custos').innerText = `R$ ${custosAquisicao.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+            document.getElementById('dash-lucro').innerText = `R$ ${v.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('dash-perda').innerText = `R$ ${c.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             
-            const lucroEl = document.getElementById('dash-lucro-real');
-            lucroEl.innerText = `R$ ${lucroLiquidoReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-            lucroEl.className = lucroLiquidoReal >= 0 ? "value gain" : "value loss";
+            const saldoEl = document.getElementById('dash-saldo');
+            saldoEl.innerText = `R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            
+            // Lógica de Cor Conforme Ganhos/Perdas
+            if(saldo > 0) {
+                saldoEl.className = "value gain";
+            } else if(saldo < 0) {
+                saldoEl.className = "value loss";
+            } else {
+                saldoEl.className = "value";
+            }
         }
     </script>
 </body>
