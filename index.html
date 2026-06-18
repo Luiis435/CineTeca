@@ -24,6 +24,12 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; min-height: 100vh; }
 
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #333; }
+
         /* --- TELA DE LOGIN --- */
         #login-screen { height: 100vh; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at top right, rgba(80, 200, 120, 0.1), transparent); }
         .login-card { background: var(--bg-card); border: 1px solid var(--border); padding: 50px; border-radius: 20px; width: 100%; max-width: 420px; text-align: center; }
@@ -38,7 +44,7 @@
 
         /* --- APP PRINCIPAL --- */
         #app-screen { display: none; }
-        header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+        header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
         .container { max-width: 1500px; margin: 40px auto; padding: 0 20px; }
 
         /* Dashboard */
@@ -56,6 +62,9 @@
         .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 25px; height: fit-content; margin-bottom: 25px; }
         .panel h2 { font-family: 'Urbanist', sans-serif; margin-bottom: 20px; border-left: 4px solid var(--accent-green); padding-left: 15px; font-size: 1.3rem; }
 
+        .search-container { margin-bottom: 15px; }
+        .search-input { padding: 10px 14px; margin-bottom: 0; font-size: 0.85rem; }
+
         /* Tabelas */
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 12px 15px; color: var(--accent-green); font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
@@ -70,6 +79,7 @@
         .btn-action { background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; transition: 0.3s; margin-left: 10px; font-weight: 500; }
         .btn-action.sell:hover { color: var(--accent-green); }
         .btn-action.delete:hover { color: var(--accent-red); }
+        .btn-action.undo:hover { color: var(--accent-blue); }
 
         .logout-link { color: var(--text-dim); text-decoration: none; cursor: pointer; }
         .logout-link:hover { color: var(--accent-green); }
@@ -147,7 +157,9 @@
                         <h2 style="border-left-color: var(--accent-blue);">3. Registrar Brique (Troca)</h2>
                         <form onsubmit="executeBrique(event)">
                             <label style="color: var(--text-dim); font-size: 0.8rem;">O QUE VOCÊ VAI DAR DE SEU ESTOQUE?</label>
-                            <select id="brique-item-antigo" required></select>
+                            <select id="brique-item-antigo" required>
+                                <option value="">-- Escolha o Aparelho --</option>
+                            </select>
                             <input type="text" id="brique-item-novo" placeholder="O que vai receber (Ex: Moto G22 + R$100 volta)" required>
                             <input type="number" id="brique-torna" step="0.01" value="0" placeholder="Torna paga por você (0 se não deu nada)">
                             <button type="submit" class="btn-primary" style="background: var(--accent-blue);">Concluir Permuta</button>
@@ -157,6 +169,9 @@
 
                 <div class="panel">
                     <h2>Bancada Atual / Itens Disponíveis</h2>
+                    <div class="search-container">
+                        <input type="text" id="search-inventory" class="search-input" placeholder="🔍 Buscar na bancada..." oninput="render()">
+                    </div>
                     <div style="overflow-x: auto;">
                         <table>
                             <thead>
@@ -175,6 +190,9 @@
 
             <div class="panel">
                 <h2>Livro de Registros Fechados & Lucros Obtidos</h2>
+                <div class="search-container">
+                    <input type="text" id="search-history" class="search-input" placeholder="🔍 Buscar no histórico..." oninput="render()">
+                </div>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -184,7 +202,7 @@
                                 <th>Investimento Total</th>
                                 <th>Valor de Venda</th>
                                 <th>Lucro Líquido</th>
-                                <th></th>
+                                <th style="text-align: right;">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="history-body"></tbody>
@@ -223,7 +241,7 @@
                 id: Date.now(),
                 tipo: 'Compra',
                 desc: document.getElementById('desc').value,
-                custo: parseFloat(document.getElementById('val').value),
+                custoAquisicao: parseFloat(document.getElementById('val').value),
                 custoPecas: 0,
                 historico: 'Adquirido cru.'
             };
@@ -231,30 +249,31 @@
             save(); render(); e.target.reset();
         }
 
-        // Lógica Dedicada de Reparo e Acúmulo de Custos
         function executeReparo(e) {
             e.preventDefault();
             const id = parseInt(document.getElementById('reparo-item-id').value);
             const custoPeca = parseFloat(document.getElementById('reparo-custo').value);
             const detalhe = document.getElementById('reparo-detalhe').value || 'Reparo executado';
 
+            if(!id) { alert("Selecione um aparelho!"); return; }
+
             const item = inventario.find(i => i.id === id);
             if(!item) return;
 
-            // Soma o custo da peça e documenta o histórico do celular
-            item.custo += custoPeca;
+            // Aloca corretamente o custo na gaveta correta de peças sem duplicar na aquisição
             item.custoPecas += custoPeca;
             item.historico += ` + [Reparo: ${detalhe} (Peça: R$ ${custoPeca})]`;
 
-            // Adiciona uma linha no histórico apenas informando o gasto com conserto
+            // O histórico geral registra a movimentação isolada de saída para compra de peça
             historicoGeral.push({
                 id: Date.now(),
                 tipo: 'Reparo',
                 desc: `Gasto com Peça para [${item.desc}]: ${detalhe}`,
                 custoBase: custoPeca,
                 faturamento: 0,
-                lucro: 0,
-                isReparo: true
+                lucro: -custoPeca,
+                isReparo: true,
+                parentAparelhoId: item.id // Vincula ao aparelho caso queira rastrear
             });
 
             save(); render(); e.target.reset();
@@ -266,16 +285,19 @@
             const itemNovoDesc = document.getElementById('brique-item-novo').value;
             const tornaPaga = parseFloat(document.getElementById('brique-torna').value) || 0;
 
+            if(!idAntigo) { alert("Selecione o aparelho que você dará na troca!"); return; }
+
             const itemAntigo = inventario.find(i => i.id === idAntigo);
             if(!itemAntigo) return;
 
+            // O novo item herda os custos totais acumulados do antigo até aqui como seu novo custo de aquisição
             const novoItem = {
                 id: Date.now(),
                 tipo: 'Troca',
                 desc: itemNovoDesc,
-                custo: itemAntigo.custo + tornaPaga,
-                custoPecas: itemAntigo.custoPecas,
-                historico: `Vindo de troca por [${itemAntigo.desc}]`
+                custoAquisicao: itemAntigo.custoAquisicao + itemAntigo.custoPecas + tornaPaga,
+                custoPecas: 0,
+                historico: `Vindo de troca por [${itemAntigo.desc}] (Histórico anterior: ${itemAntigo.historico})`
             };
 
             historicoGeral.push({
@@ -284,7 +306,7 @@
                 desc: `Permuta: Deixou [${itemAntigo.desc}] -> Pegou [${itemNovoDesc}]`,
                 custoBase: tornaPaga,
                 faturamento: 0,
-                lucro: 0,
+                lucro: -tornaPaga,
                 isBrique: true
             });
 
@@ -297,95 +319,157 @@
             const item = inventario.find(i => i.id === id);
             if (!item) return;
 
-            const valorVendaStr = prompt(`Preço final de venda para "${item.desc}":\nCusto Total Acumulado: R$ ${item.custo.toFixed(2)}`);
+            const custoTotal = item.custoAquisicao + item.custoPecas;
+            const valorVendaStr = prompt(`Preço final de venda para "${item.desc}":\nCusto Total Acumulado: R$ ${custoTotal.toFixed(2)} (Aquisição: R$ ${item.custoAquisicao.toFixed(2)} | Peças: R$ ${item.custoPecas.toFixed(2)})`);
+            
+            if (valorVendaStr === null) return;
             const valorVenda = parseFloat(valorVendaStr);
-            if (isNaN(valorVenda) || valorVenda <= 0) return;
+            if (isNaN(valorVenda) || valorVenda < 0) { alert("Valor inválido."); return; }
 
             historicoGeral.push({
                 id: Date.now(),
                 tipo: 'Venda',
                 desc: `${item.desc} | Trajeto: ${item.historico}`,
-                custoBase: item.custo,
+                custoBase: item.custoAquisicao, 
                 custoPecas: item.custoPecas,
                 faturamento: valorVenda,
-                lucro: valorVenda - item.custo,
-                isVenda: true
+                lucro: valorVenda - custoTotal,
+                isVenda: true,
+                backupItem: item // Salva uma cópia do objeto caso haja estorno
             });
 
             inventario = inventario.filter(i => i.id !== id);
             save(); render();
         }
 
-        function deleteInventory(id) { inventario = inventario.filter(i => i.id !== id); save(); render(); }
-        function deleteHistory(id) { historicoGeral = historicoGeral.filter(h => h.id !== id); save(); render(); }
-        function save() { localStorage.setItem('lab_inventory', JSON.stringify(inventario)); localStorage.setItem('lab_history', JSON.stringify(historicoGeral)); }
+        function undoVenda(id) {
+            const op = historicoGeral.find(h => h.id === id);
+            if(!op || !op.isVenda) return;
+
+            if(confirm(`Deseja estornar a venda de "${op.backupItem.desc}"? O aparelho voltará para a bancada com seus custos.`)) {
+                inventario.push(op.backupItem);
+                historicoGeral = historicoGeral.filter(h => h.id !== id);
+                save(); render();
+            }
+        }
+
+        function deleteInventory(id) { 
+            if(confirm("Deseja mesmo remover permanentemente este item do estoque?")) {
+                inventario = inventario.filter(i => i.id !== id); 
+                save(); render(); 
+            }
+        }
+        
+        function deleteHistory(id) { 
+            if(confirm("Deseja apagar permanentemente este registro financeiro do livro?")) {
+                historicoGeral = historicoGeral.filter(h => h.id !== id); 
+                save(); render(); 
+            }
+        }
+        
+        function save() { 
+            localStorage.setItem('lab_inventory', JSON.stringify(inventario)); 
+            localStorage.setItem('lab_history', JSON.stringify(historicoGeral)); 
+        }
 
         function render() {
             const invBody = document.getElementById('inventory-body');
             const selectReparo = document.getElementById('reparo-item-id');
             const selectBrique = document.getElementById('brique-item-antigo');
             
+            const searchInvTerm = document.getElementById('search-inventory').value.toLowerCase();
+            const searchHistTerm = document.getElementById('search-history').value.toLowerCase();
+
             invBody.innerHTML = '';
             selectReparo.innerHTML = '<option value="">-- Escolha o Aparelho --</option>';
             selectBrique.innerHTML = '<option value="">-- Escolha o Aparelho --</option>';
 
+            // 1. RENDERIZAÇÃO DA BANCADA (ESTOQUE)
             inventario.forEach(item => {
-                const badgeClass = item.tipo === 'Compra' ? 'badge-compra' : 'badge-troca';
-                invBody.innerHTML += `
-                    <tr>
-                        <td><span class="badge ${badgeClass}">${item.tipo}</span></td>
-                        <td><strong>${item.desc}</strong><br><span style="font-size:0.75rem; color:var(--text-dim)">${item.historico}</span></td>
-                        <td style="font-weight:600;">R$ ${item.custo.toFixed(2)}</td>
-                        <td style="text-align:right; white-space:nowrap;">
-                            <button class="btn-action sell" onclick="sellItem(${item.id})"><i class="fa-solid fa-cash-register"></i> Vender</button>
-                            <button class="btn-action delete" onclick="deleteInventory(${item.id})"><i class="fa-solid fa-trash-can"></i></button>
-                        </td>
-                    </tr>
-                `;
-                selectReparo.innerHTML += `<option value="${item.id}">${item.desc} (Custo: R$ ${item.custo.toFixed(2)})</option>`;
+                const custoTotal = item.custoAquisicao + item.custoPecas;
+                
+                // Preenche selects de formulários independente de filtros de busca da tabela
+                selectReparo.innerHTML += `<option value="${item.id}">${item.desc} (Total: R$ ${custoTotal.toFixed(2)})</option>`;
                 selectBrique.innerHTML += `<option value="${item.id}">${item.desc}</option>`;
+
+                // Aplica filtro de busca da bancada se houver termo digitado
+                if(item.desc.toLowerCase().includes(searchInvTerm) || item.historico.toLowerCase().includes(searchInvTerm)) {
+                    const badgeClass = item.tipo === 'Compra' ? 'badge-compra' : 'badge-troca';
+                    invBody.innerHTML += `
+                        <tr>
+                            <td><span class="badge ${badgeClass}">${item.tipo}</span></td>
+                            <td><strong>${item.desc}</strong><br><span style="font-size:0.75rem; color:var(--text-dim)">${item.historico}</span></td>
+                            <td style="font-weight:600;">R$ ${custoTotal.toFixed(2)}<br><span style="font-size:0.7rem; font-weight:normal; color:var(--text-dim)">Aquis: R$ ${item.custoAquisicao.toFixed(2)} | Peças: R$ ${item.custoPecas.toFixed(2)}</span></td>
+                            <td style="text-align:right; white-space:nowrap;">
+                                <button class="btn-action sell" onclick="sellItem(${item.id})"><i class="fa-solid fa-cash-register"></i> Vender</button>
+                                <button class="btn-action delete" onclick="deleteInventory(${item.id})"><i class="fa-solid fa-trash-can"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }
             });
 
+            // 2. RENDERIZAÇÃO DO LIVRO DE REGISTROS (HISTÓRICO) & MATEMÁTICA DO DASHBOARD
             const histBody = document.getElementById('history-body');
             histBody.innerHTML = '';
             
-            let faturamento = 0, investidoPecas = 0, custosAquisicao = 0, lucroLiquido = 0;
+            let faturamento = 0;
+            let investidoPecas = 0;
+            let custosAquisicao = 0;
+            let lucroLiquidoReal = 0;
 
             historicoGeral.forEach(op => {
+                // Cálculo das Gavetas Financeiras (Independente de busca na tela)
                 if(op.isReparo) {
                     investidoPecas += op.custoBase;
+                    lucroLiquidoReal -= op.custoBase; // Subtrai direto das suas despesas correntes de caixa
                 } else if(op.isBrique) {
-                    custosAquisicao += op.custoBase; // Torna entra como custo de aquisição
+                    custosAquisicao += op.custoBase; 
+                    lucroLiquidoReal -= op.custoBase; // Gastos com torna diminuem seu lucro imediato
                 } else if(op.isVenda) {
                     faturamento += op.faturamento;
-                    custosAquisicao += (op.custoBase - op.custoPecas);
+                    custosAquisicao += op.custoBase;
                     investidoPecas += op.custoPecas;
-                    lucroLiquido += op.lucro;
+                    lucroLiquidoReal += op.lucro;
                 }
 
-                let badgeHtml = `<span class="badge badge-venda">Venda</span>`;
-                if(op.isReparo) badgeHtml = `<span class="badge badge-reparo">Peça</span>`;
-                if(op.isBrique) badgeHtml = `<span class="badge badge-troca">Brique</span>`;
+                // Exibe as linhas da tabela aplicando o filtro de busca do histórico
+                if(op.desc.toLowerCase().includes(searchHistTerm)) {
+                    let badgeHtml = `<span class="badge badge-venda">Venda</span>`;
+                    let acoesHtml = `<button class="btn-action undo" title="Estornar Venda e voltar para bancada" onclick="undoVenda(${op.id})"><i class="fa-solid fa-rotate-left"></i> Estornar</button>`;
+                    
+                    if(op.isReparo) {
+                        badgeHtml = `<span class="badge badge-reparo">Peça</span>`;
+                        acoesHtml = `<button class="btn-action delete" onclick="deleteHistory(${op.id})"><i class="fa-solid fa-trash-can"></i></button>`;
+                    }
+                    if(op.isBrique) {
+                        badgeHtml = `<span class="badge badge-troca">Brique</span>`;
+                        acoesHtml = `<button class="btn-action delete" onclick="deleteHistory(${op.id})"><i class="fa-solid fa-trash-can"></i></button>`;
+                    }
 
-                histBody.innerHTML += `
-                    <tr>
-                        <td>${badgeHtml}</td>
-                        <td style="color:#eee; font-size:0.85rem">${op.desc}</td>
-                        <td style="color:var(--text-dim)">R$ ${op.custoBase.toFixed(2)}</td>
-                        <td>${op.faturamento > 0 ? 'R$ ' + op.faturamento.toFixed(2) : '--'}</td>
-                        <td style="color:${op.lucro >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;">${op.isVenda ? 'R$ ' + op.lucro.toFixed(2) : '--'}</td>
-                        <td><button class="btn-action delete" onclick="deleteHistory(${op.id})"><i class="fa-solid fa-trash-can"></i></button></td>
-                    </tr>
-                `;
+                    let totalInvestidoLinha = op.isVenda ? (op.custoBase + op.custoPecas) : op.custoBase;
+
+                    histBody.innerHTML += `
+                        <tr>
+                            <td>${badgeHtml}</td>
+                            <td style="color:#eee; font-size:0.85rem">${op.desc}</td>
+                            <td style="color:var(--text-dim)">R$ ${totalInvestidoLinha.toFixed(2)}</td>
+                            <td>${op.faturamento > 0 ? 'R$ ' + op.faturamento.toFixed(2) : '--'}</td>
+                            <td style="color:${op.lucro >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;">R$ ${op.lucro.toFixed(2)}</td>
+                            <td style="text-align:right;">${acoesHtml}</td>
+                        </tr>
+                    `;
+                }
             });
 
+            // Atualiza os painéis do Dashboard com os valores calculados
             document.getElementById('dash-faturamento').innerText = `R$ ${faturamento.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
             document.getElementById('dash-pecas').innerText = `R$ ${investidoPecas.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
             document.getElementById('dash-custos').innerText = `R$ ${custosAquisicao.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
             
             const lucroEl = document.getElementById('dash-lucro-real');
-            lucroEl.innerText = `R$ ${lucroLiquido.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-            lucroEl.className = lucroLiquido >= 0 ? "value gain" : "value loss";
+            lucroEl.innerText = `R$ ${lucroLiquidoReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+            lucroEl.className = lucroLiquidoReal >= 0 ? "value gain" : "value loss";
         }
     </script>
 </body>
