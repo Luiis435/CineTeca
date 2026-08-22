@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plano 50 - Real Time & Charts v5</title>
+  <title>Plano 50 - Real Time Complete v6</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -52,7 +52,6 @@
     .form-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
     input, select, button { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; font-size: 0.85rem; }
     .btn-sub { background: var(--primary); color: #fff; font-weight: 600; cursor: pointer; border: none; }
-    .btn-sec { background: var(--border); color: var(--text); font-weight: 600; cursor: pointer; border: none; }
   </style>
 </head>
 <body>
@@ -60,12 +59,12 @@
   <div class="header">
     <button class="btn-eye" onclick="togglePrivacidade()" id="btnEye">👁️</button>
     <h1>🎯 Plano R$ 50/mês</h1>
-    <p>Tempo Real & Gráficos Individuais</p>
+    <p>Todos os Ativos em Tempo Real</p>
   </div>
 
   <!-- STATUS DO TEMPO REAL -->
   <div class="status-bar">
-    <div><span class="pulse-dot"></span> Tempo Real Ativo</div>
+    <div><span class="pulse-dot"></span> Tempo Real Ativo (15s)</div>
     <div id="txtTimer">Próxima atualização: 15s</div>
   </div>
 
@@ -92,17 +91,17 @@
   <div class="card">
     <div class="card-title">
       <span id="lblAtivoSelecionado">📈 Preço: GARE11</span>
-      <small style="font-size:0.75rem; color:var(--muted)">Clique em qualquer ativo abaixo</small>
+      <small style="font-size:0.75rem; color:var(--muted)">Clique em qualquer ativo</small>
     </div>
     <div class="chart-container">
       <canvas id="chartAtivo"></canvas>
     </div>
   </div>
 
-  <!-- ATIVOS DO PLANO -->
+  <!-- TODOS OS ATIVOS CADASTRADOS -->
   <div class="card">
-    <div class="card-title">💼 Ativos em Acompanhamento</div>
-    <div id="listaAtivosPlano">Carregando dados em tempo real...</div>
+    <div class="card-title">💼 Ativos Cadastrados (6)</div>
+    <div id="listaAtivosPlano">Carregando cotações B3/Cripto...</div>
   </div>
 
   <!-- ALOCAÇÃO DA CARTEIRA -->
@@ -113,7 +112,7 @@
     </div>
   </div>
 
-  <!-- CADASTRO MANUAL -->
+  <!-- CADASTRO / EDICÃO MANUAL -->
   <div class="card">
     <div class="card-title">⚙️ Ajustar Posição</div>
     <div class="form-inputs">
@@ -121,7 +120,7 @@
       <input type="number" id="inQtd" placeholder="Qtd" step="any">
       <input type="number" id="inPM" placeholder="Preço Pago" step="any">
     </div>
-    <button class="btn-sub" style="width:100%; margin-top:8px;" onclick="salvarManual()">Salvar Ativo</button>
+    <button class="btn-sub" style="width:100%; margin-top:8px;" onclick="salvarManual()">Salvar Posição</button>
   </div>
 
 <script>
@@ -129,19 +128,18 @@
   let timerSegundos = 15;
   let ativoSelecionado = 'GARE11';
 
-  let carteira = JSON.parse(localStorage.getItem('plano50_carteira_v5')) || [
-    { symbol: 'GARE11', qtd: 1, pm: 8.10, dy: 0.011 },
-    { symbol: 'GGRC11', qtd: 1, pm: 9.13, dy: 0.010 },
-    { symbol: 'CPLE3',  qtd: 1, pm: 13.90, dy: 0.006 },
-    { symbol: 'DOT',    qtd: 2.1363, pm: 8.50, dy: 0.000 }
-  ];
-
-  let historicoAportes = JSON.parse(localStorage.getItem('plano50_historico_v5')) || [
-    { data: 'Início', aporte: 60.26, total: 60.26 }
+  // CARTEIRA COM TODOS OS SEUS 6 ATIVOS EXACTOS
+  let carteira = JSON.parse(localStorage.getItem('plano50_carteira_v6')) || [
+    { symbol: 'DOT',    qtd: 2.1363, pm: 3.978, totalPago: 8.50 }, // 8.50 / 2.1363 = 3.978 por cota
+    { symbol: 'COGN3',  qtd: 1.0000, pm: 2.140, totalPago: 2.14 },
+    { symbol: 'CPLE3',  qtd: 1.0000, pm: 13.90, totalPago: 13.90 },
+    { symbol: 'HGBS11', qtd: 1.0000, pm: 18.49, totalPago: 18.49 },
+    { symbol: 'GARE11', qtd: 1.0000, pm: 8.100, totalPago: 8.10 },
+    { symbol: 'GGRC11', qtd: 1.0000, pm: 9.130, totalPago: 9.13 }
   ];
 
   let cotacoes = {};
-  let historicoPrecosAtivo = {}; // Guarda últimos preços para o gráfico em tempo real
+  let historicoPrecosAtivo = {};
 
   let chartPieInst, chartAtivoInst;
 
@@ -157,6 +155,7 @@
   }
 
   async function carregarCotacoesTempoReal() {
+    // 1. Cotações B3
     const tickersB3 = carteira.filter(c => c.symbol !== 'DOT').map(c => c.symbol).join(',');
     if (tickersB3) {
       try {
@@ -171,6 +170,7 @@
       } catch(e) { console.log("Erro B3 API"); }
     }
 
+    // 2. Cotação Cripto (DOT)
     try {
       const resC = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=brl');
       const dataC = await resC.json();
@@ -185,11 +185,10 @@
 
   function registrarHistoricoPreco(symbol, preco) {
     if (!historicoPrecosAtivo[symbol]) {
-      // Cria dados fictícios iniciais de variação para o gráfico não nascer vazio
       historicoPrecosAtivo[symbol] = [preco * 0.98, preco * 0.99, preco * 0.995, preco];
     } else {
       historicoPrecosAtivo[symbol].push(preco);
-      if (historicoPrecosAtivo[symbol].length > 10) historicoPrecosAtivo[symbol].shift(); // Mantém últimas 10 leituras
+      if (historicoPrecosAtivo[symbol].length > 10) historicoPrecosAtivo[symbol].shift();
     }
   }
 
@@ -221,12 +220,12 @@
       }
 
       const ehOportunidade = precoAtual > 0 && precoAtual < item.pm;
-      const tagOportunidade = ehOportunidade ? `<span class="tag-opportunity">🔥 Abaixo PM</span>` : '';
+      const tagOportunidade = ehOportunidade ? `<span class="tag-opportunity">🔥 Oportunidade</span>` : '';
 
       htmlAtivos += `
         <div class="asset-row" onclick="selecionarAtivo('${item.symbol}')">
           <div>
-            <strong>${item.symbol}</strong> ${tagOportunidade} <span class="tag">${item.qtd.toFixed(2)} u</span><br>
+            <strong>${item.symbol}</strong> ${tagOportunidade} <span class="tag">${item.qtd.toFixed(item.symbol === 'DOT' ? 4 : 0)} u</span><br>
             <small style="color:var(--muted)">PM: ${fmtVal(item.pm)} | Tempo Real: ${fmtVal(precoAtual)}</small>
           </div>
           <div style="text-align:right;">
@@ -252,7 +251,7 @@
     if (chartPieInst) chartPieInst.destroy();
     chartPieInst = new Chart(ctxPie, {
       type: 'pie',
-      data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'] }] },
+      data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } }
     });
   }
@@ -291,7 +290,7 @@
     if(sobra > 0) atualizarAtivo('CPLE3', sobra / pCPLE, pCPLE);
 
     salvarEstado();
-    alert("Aporte registrado com cotações em tempo real!");
+    alert("Aporte de R$ 50 registrado com sucesso!");
     renderizar();
   }
 
@@ -316,7 +315,7 @@
       item.qtd = qtd;
       if (!isNaN(pm)) item.pm = pm;
     } else {
-      carteira.push({ symbol, qtd, pm: pm || 0, dy: 0.008 });
+      carteira.push({ symbol, qtd, pm: pm || 0 });
     }
 
     salvarEstado();
@@ -324,10 +323,10 @@
   }
 
   function salvarEstado() {
-    localStorage.setItem('plano50_carteira_v5', JSON.stringify(carteira));
+    localStorage.setItem('plano50_carteira_v6', JSON.stringify(carteira));
   }
 
-  // LOOP DE TEMPO REAL (15 SEGUNDOS)
+  // LOOP TEMPO REAL (15s)
   setInterval(() => {
     timerSegundos--;
     if (timerSegundos <= 0) {
