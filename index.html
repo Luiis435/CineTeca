@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plano 50 - Gestor de Investimentos</title>
+  <title>Plano 50 - Gestor de Investimentos v3</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -43,18 +43,19 @@
     .chart-container { position: relative; height: 220px; width: 100%; }
     
     .form-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
-    input, select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; font-size: 0.85rem; }
-    .btn-sub { background: var(--primary); color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    input, select, button { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; font-size: 0.85rem; }
+    .btn-sub { background: var(--primary); color: #fff; font-weight: 600; cursor: pointer; border: none; }
+    .btn-sec { background: var(--border); color: var(--text); font-weight: 600; cursor: pointer; border: none; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>🎯 Plano R$ 50/mês</h1>
-    <p>Acompanhamento de Metas & Cotações Automáticas</p>
+    <h1>🎯 Plano R$ 50/mês - Ultra App</h1>
+    <p>Acompanhamento, Projeções e Gestão de Proventos</p>
   </div>
 
-  <!-- BOTÃO DE CHECK-IN -->
+  <!-- CHECK-IN MENSAL -->
   <div class="card">
     <button class="btn-checkin" onclick="fazerCheckinMensal()">⚡ Check-in Aporte do Mês (R$ 50)</button>
     <p style="font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 8px;">
@@ -62,7 +63,7 @@
     </p>
   </div>
 
-  <!-- RESUMO DO PATRIMÔNIO -->
+  <!-- RESUMO DE PATRIMÔNIO -->
   <div class="card">
     <div class="grid-stats">
       <div class="stat-box">
@@ -76,6 +77,22 @@
     </div>
   </div>
 
+  <!-- RECURSO 1: ESTIMATIVA DE DIVIDENDOS & BOLA DE NEVE -->
+  <div class="card">
+    <div class="card-title">💰 Renda Mensal Estimada (Proventos)</div>
+    <div class="grid-stats">
+      <div class="stat-box">
+        <label>Dividendos / Mês</label>
+        <span id="txtDividendos" style="color: var(--success);">R$ 0,00</span>
+      </div>
+      <div class="stat-box">
+        <label>Meta Reinvestimento</label>
+        <span id="txtMetaReinvestir">0% do valor da cota</span>
+      </div>
+    </div>
+    <p id="msgBolaDeNeve" style="font-size: 0.75rem; color: var(--muted); margin-top: 10px; text-align: center;"></p>
+  </div>
+
   <!-- GRÁFICOS -->
   <div class="card">
     <div class="card-title">📊 Alocação da Carteira</div>
@@ -85,10 +102,21 @@
   </div>
 
   <div class="card">
-    <div class="card-title">📈 Evolução do Patrimônio</div>
+    <div class="card-title">📈 Evolução de Aportes Realizados</div>
     <div class="chart-container">
       <canvas id="chartLine"></canvas>
     </div>
+  </div>
+
+  <!-- RECURSO 3: SIMULADOR BOLA DE NEVE 36 MESES -->
+  <div class="card">
+    <div class="card-title">🚀 Projeção de Crescimento (36 Meses)</div>
+    <div class="chart-container">
+      <canvas id="chartProjeção"></canvas>
+    </div>
+    <p style="font-size:0.75rem; color:var(--muted); margin-top:8px; text-align:center;">
+      Projeção com aportes mensais de R$ 50 + reinvestimento dos dividendos.
+    </p>
   </div>
 
   <!-- ATIVOS DO PLANO -->
@@ -106,7 +134,7 @@
     <div id="listaAtivosEspera">Carregando dados...</div>
   </div>
 
-  <!-- ADICIONAR/AJUSTAR POSIÇÕES -->
+  <!-- EDICÃO/AJUSTE MANUAL -->
   <div class="card">
     <div class="card-title">⚙️ Cadastrar ou Ajustar Posição</div>
     <div class="form-inputs">
@@ -124,26 +152,35 @@
     </div>
   </div>
 
+  <!-- RECURSO 2: EXPORTAR E IMPORTAR BACKUP -->
+  <div class="card">
+    <div class="card-title">💾 Backup & Exportação de Dados</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+      <button class="btn-sec" onclick="exportarDados()">📥 Exportar Backup</button>
+      <button class="btn-sec" onclick="document.getElementById('fileInput').click()">📤 Importar Backup</button>
+    </div>
+    <input type="file" id="fileInput" style="display:none" onchange="importarDados(event)">
+  </div>
+
 <script>
-  // DADOS REAIS PRÉ-CARREGADOS
-  let carteira = JSON.parse(localStorage.getItem('plano50_carteira_v2')) || [
-    { symbol: 'GARE11', qtd: 1, pm: 8.10, status: 'ATIVO' },
-    { symbol: 'GGRC11', qtd: 1, pm: 9.13, status: 'ATIVO' },
-    { symbol: 'CPLE3', qtd: 1, pm: 13.90, status: 'ATIVO' },
-    { symbol: 'COGN3', qtd: 1, pm: 2.14, status: 'ESPERA' },
-    { symbol: 'HGBS11', qtd: 1, pm: 18.49, status: 'ESPERA' },
-    { symbol: 'DOT', qtd: 2.1363, pm: 8.50, status: 'CRIPTO' }
+  // DADOS REAIS INICIAIS
+  let carteira = JSON.parse(localStorage.getItem('plano50_carteira_v3')) || [
+    { symbol: 'GARE11', qtd: 1, pm: 8.10, status: 'ATIVO', dy: 0.011 },  // ~1.1% ao mês
+    { symbol: 'GGRC11', qtd: 1, pm: 9.13, status: 'ATIVO', dy: 0.010 },  // ~1.0% ao mês
+    { symbol: 'CPLE3',  qtd: 1, pm: 13.90, status: 'ATIVO', dy: 0.006 }, // ~0.6% ao mês
+    { symbol: 'COGN3',  qtd: 1, pm: 2.14, status: 'ESPERA', dy: 0.000 },
+    { symbol: 'HGBS11', qtd: 1, pm: 18.49, status: 'ESPERA', dy: 0.008 },
+    { symbol: 'DOT',    qtd: 2.1363, pm: 8.50, status: 'CRIPTO', dy: 0.000 }
   ];
 
-  let historicoAportes = JSON.parse(localStorage.getItem('plano50_historico_v2')) || [
+  let historicoAportes = JSON.parse(localStorage.getItem('plano50_historico_v3')) || [
     { data: 'Início', aporte: 60.26, total: 60.26 }
   ];
 
   let cotacoes = {};
-  let chartPieInst, chartLineInst;
+  let chartPieInst, chartLineInst, chartProjInst;
 
   async function carregarCotacoes() {
-    // Cotações B3 via BRAPI
     const tickersB3 = carteira.filter(c => c.status !== 'CRIPTO').map(c => c.symbol).join(',');
     if (tickersB3) {
       try {
@@ -155,7 +192,6 @@
       } catch(e) { console.log("Erro B3"); }
     }
 
-    // Cotações Cripto via CoinGecko
     try {
       const resC = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=brl');
       const dataC = await resC.json();
@@ -183,8 +219,7 @@
     const totalAnterior = historicoAportes.length > 0 ? historicoAportes[historicoAportes.length - 1].total : 0;
     
     historicoAportes.push({ data: dataAtual, aporte: 50, total: totalAnterior + 50 });
-    localStorage.setItem('plano50_historico_v2', JSON.stringify(historicoAportes));
-    localStorage.setItem('plano50_carteira_v2', JSON.stringify(carteira));
+    salvarEstado();
 
     alert("Check-in de R$ 50 realizado com sucesso!");
     renderizar();
@@ -193,7 +228,7 @@
   function atualizarAtivo(symbol, qtdAdd, preco) {
     let item = carteira.find(c => c.symbol === symbol);
     if (!item) {
-      item = { symbol, qtd: 0, pm: 0, status: 'ATIVO' };
+      item = { symbol, qtd: 0, pm: 0, status: 'ATIVO', dy: 0.008 };
       carteira.push(item);
     }
     const novoTotalQtd = item.qtd + qtdAdd;
@@ -216,10 +251,10 @@
       if (!isNaN(pm)) item.pm = pm;
       item.status = status;
     } else {
-      carteira.push({ symbol, qtd, pm: pm || 0, status });
+      carteira.push({ symbol, qtd, pm: pm || 0, status, dy: 0.008 });
     }
 
-    localStorage.setItem('plano50_carteira_v2', JSON.stringify(carteira));
+    salvarEstado();
     document.getElementById('inSymbol').value = '';
     document.getElementById('inQtd').value = '';
     document.getElementById('inPM').value = '';
@@ -229,6 +264,7 @@
   function renderizar() {
     let patrimonioTotal = 0;
     let totalInvestido = 0;
+    let dividendosMensais = 0;
 
     let htmlPlano = '';
     let htmlEspera = '';
@@ -244,6 +280,10 @@
       patrimonioTotal += valorTotal;
       totalInvestido += investido;
 
+      // Cálculo do Dividendo Mensal Estimado
+      const estimativaDividendo = valorTotal * (item.dy || 0);
+      dividendosMensais += estimativaDividendo;
+
       if (valorTotal > 0) {
         labelsPie.push(item.symbol);
         dataPie.push(valorTotal);
@@ -256,7 +296,8 @@
             <small style="color:var(--muted)">PM: R$ ${item.pm.toFixed(2)} | Atual: R$ ${precoAtual.toFixed(2)}</small>
           </div>
           <div style="text-align:right;">
-            <strong>R$ ${valorTotal.toFixed(2)}</strong>
+            <strong>R$ ${valorTotal.toFixed(2)}</strong><br>
+            <small style="color:var(--success)">+R$ ${estimativaDividendo.toFixed(2)}/mês</small>
           </div>
         </div>
       `;
@@ -265,13 +306,27 @@
       else htmlEspera += rowHtml;
     });
 
-    document.getElementById('listaAtivosPlano').innerHTML = htmlPlano || '<p style="font-size:0.8rem; color:var(--muted)">Nenhum aporte ativo ainda.</p>';
-    document.getElementById('listaAtivosEspera').innerHTML = htmlEspera || '<p style="font-size:0.8rem; color:var(--muted)">Nenhum ativo em espera.</p>';
+    document.getElementById('listaAtivosPlano').innerHTML = htmlPlano;
+    document.getElementById('listaAtivosEspera').innerHTML = htmlEspera;
 
     document.getElementById('txtTotal').innerText = `R$ ${patrimonioTotal.toFixed(2)}`;
     document.getElementById('txtAportado').innerText = `R$ ${totalInvestido.toFixed(2)}`;
+    document.getElementById('txtDividendos').innerText = `R$ ${dividendosMensais.toFixed(2)}`;
+
+    // Cálculo da Bola de Neve
+    const precoCotaBase = cotacoes['GARE11'] || 8.10;
+    const progressoReinvestir = Math.min((dividendosMensais / precoCotaBase) * 100, 100);
+    document.getElementById('txtMetaReinvestir').innerText = `${progressoReinvestir.toFixed(1)}% de 1 Cota`;
+
+    if (dividendosMensais >= precoCotaBase) {
+      document.getElementById('msgBolaDeNeve').innerText = "🎉 Parabéns! Seus dividendos já compram +1 cota sem doer no bolso!";
+    } else {
+      const falta = precoCotaBase - dividendosMensais;
+      document.getElementById('msgBolaDeNeve').innerText = `Faltam R$ ${falta.toFixed(2)}/mês em dividendos para atingir o Efeito Bola de Neve.`;
+    }
 
     renderizarGraficos(labelsPie, dataPie);
+    renderizarProjeção36Meses(patrimonioTotal);
   }
 
   function renderizarGraficos(labels, data) {
@@ -279,27 +334,78 @@
     if (chartPieInst) chartPieInst.destroy();
     chartPieInst = new Chart(ctxPie, {
       type: 'pie',
-      data: {
-        labels: labels,
-        datasets: [{ data: data, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] }]
-      },
+      data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } }
     });
 
     const ctxLine = document.getElementById('chartLine').getContext('2d');
     if (chartLineInst) chartLineInst.destroy();
-
-    const labelsLine = historicoAportes.map(h => h.data);
-    const dataLine = historicoAportes.map(h => h.total);
-
     chartLineInst = new Chart(ctxLine, {
       type: 'line',
       data: {
-        labels: labelsLine,
-        datasets: [{ label: 'Patrimônio Aportado (R$)', data: dataLine, borderColor: '#10b981', tension: 0.2, fill: false }]
+        labels: historicoAportes.map(h => h.data),
+        datasets: [{ label: 'Total Aportado (R$)', data: historicoAportes.map(h => h.total), borderColor: '#10b981', tension: 0.2, fill: false }]
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f8fafc' } } } }
     });
+  }
+
+  function renderizarProjeção36Meses(patrimonioAtual) {
+    const labelsProj = [];
+    const dataProj = [];
+    let saldoSimulado = patrimonioAtual;
+    const taxaRendimentoMensal = 0.008; // ~0.8% ao mês médio do plano
+
+    for (let mes = 1; mes <= 36; mes++) {
+      saldoSimulado = (saldoSimulado + 50) * (1 + taxaRendimentoMensal);
+      if (mes % 3 === 0 || mes === 1 || mes === 36) {
+        labelsProj.push(`Mês ${mes}`);
+        dataProj.push(saldoSimulado.toFixed(2));
+      }
+    }
+
+    const ctxProj = document.getElementById('chartProjeção').getContext('2d');
+    if (chartProjInst) chartProjInst.destroy();
+    chartProjInst = new Chart(ctxProj, {
+      type: 'line',
+      data: {
+        labels: labelsProj,
+        datasets: [{ label: 'Patrimônio Estimado (R$)', data: dataProj, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f8fafc' } } } }
+    });
+  }
+
+  function salvarEstado() {
+    localStorage.setItem('plano50_carteira_v3', JSON.stringify(carteira));
+    localStorage.setItem('plano50_historico_v3', JSON.stringify(historicoAportes));
+  }
+
+  function exportarDados() {
+    const dados = { carteira, historicoAportes };
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_plano50_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+  }
+
+  function importarDados(e) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        const dados = JSON.parse(event.target.result);
+        if (dados.carteira && dados.historicoAportes) {
+          carteira = dados.carteira;
+          historicoAportes = dados.historicoAportes;
+          salvarEstado();
+          renderizar();
+          alert("Backup importado com sucesso!");
+        }
+      } catch(err) { alert("Arquivo JSON inválido."); }
+    };
+    reader.readAsText(e.target.files[0]);
   }
 
   carregarCotacoes();
