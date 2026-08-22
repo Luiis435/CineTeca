@@ -3,16 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Filtro de Criptos com Busca</title>
+  <title>CriptoRadar Pro - Análise Automática</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
+      --bg: #0b0e14;
+      --card: #151d2a;
       --text: #f8fafc;
+      --text-muted: #94a3b8;
       --accent: #38bdf8;
       --danger: #ef4444;
       --success: #22c55e;
       --warning: #f59e0b;
+      --binance: #f0b90b;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -22,227 +24,152 @@
       padding: 20px;
     }
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
     }
-    header {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    h1 {
-      margin: 0 0 8px 0;
-      color: var(--accent);
-    }
-    /* Estilos do Painel de Tutorial */
-    .tutorial-card {
-      background-color: var(--card);
+    header { text-align: center; margin-bottom: 20px; }
+    h1 { margin: 0; color: var(--accent); }
+
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn {
+      background: var(--card);
       border: 1px solid #334155;
-      border-left: 4px solid var(--accent);
+      color: var(--text-muted);
+      padding: 10px 20px;
       border-radius: 8px;
-      padding: 16px 20px;
-      margin-bottom: 24px;
-    }
-    .tutorial-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       cursor: pointer;
+      font-weight: bold;
     }
-    .tutorial-header h3 {
-      margin: 0;
-      color: var(--accent);
-      font-size: 1.1rem;
-    }
-    .tutorial-content {
-      margin-top: 16px;
-      display: block;
-    }
-    .grid-steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin-top: 12px;
-    }
-    .step-box {
-      background-color: #0f172a;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #334155;
-    }
-    .step-box h4 {
-      margin: 0 0 6px 0;
-      color: var(--warning);
-      font-size: 0.95rem;
-    }
-    .step-box p {
-      margin: 0;
-      font-size: 0.85rem;
-      color: #94a3b8;
-      line-height: 1.4;
-    }
-    /* Controles e Tabela */
-    .controls {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    button, select, input {
+    .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+    .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    input, button {
       background-color: var(--card);
       color: var(--text);
       border: 1px solid #334155;
-      padding: 10px 16px;
+      padding: 10px 14px;
       border-radius: 8px;
       font-weight: 600;
     }
-    input {
-      flex-grow: 1;
-      min-width: 200px;
-    }
-    button:hover, select:hover, input:focus {
-      border-color: var(--accent);
-      outline: none;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: var(--card);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 12px 16px;
-      text-align: left;
-    }
-    th {
-      background-color: #334155;
+    input { flex-grow: 1; }
+    button { cursor: pointer; }
+    button:hover { border-color: var(--accent); }
+
+    .btn-binance {
+      background-color: var(--binance);
+      color: #000;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: bold;
       font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      display: inline-block;
     }
-    tr {
-      border-bottom: 1px solid #334155;
+
+    .grid-crypto { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .crypto-card {
+      background-color: var(--card);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
-    .drop {
-      color: var(--danger);
-      font-weight: bold;
+
+    /* Caixa do Veredito Automático */
+    .analysis-box {
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .badge-top50 {
-      background-color: #0284c7;
-      color: #fff;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: bold;
-      margin-left: 6px;
+    .verdict-good { background: rgba(34, 197, 94, 0.15); border: 1px solid var(--success); color: var(--success); }
+    .verdict-medium { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); }
+    .verdict-bad { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: var(--danger); }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 8px;
     }
-    .rsi-oversold {
-      color: var(--success);
-      font-weight: bold;
-    }
-    .alert-high {
-      background-color: rgba(34, 197, 94, 0.15);
-      border-left: 4px solid var(--success);
-    }
-    .loading {
-      text-align: center;
-      padding: 40px;
-      font-size: 1.2rem;
-    }
+    .metric-item span { display: block; font-size: 0.75rem; color: var(--text-muted); }
+    .metric-item strong { font-size: 1rem; }
+
+    .chart-container { height: 280px; width: 100%; border-radius: 8px; overflow: hidden; background: #000; }
+    .drop { color: var(--danger); }
+    .loading { text-align: center; padding: 40px; font-size: 1.2rem; }
   </style>
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h1>Filtro de Oportunidades & Análise de Quedas</h1>
+    <h1>🔥 CriptoRadar - Análise Automática de Oportunidades</h1>
   </header>
 
-  <!-- PAINEL DE TUTORIAL INTERATIVO -->
-  <div class="tutorial-card">
-    <div class="tutorial-header" onclick="toggleTutorial()">
-      <h3>📘 Guia de Uso</h3>
-      <span id="tutorialIcon" style="font-size: 0.9rem; color: #94a3b8;">[ Ocultar ]</span>
-    </div>
-    
-    <div id="tutorialContent" class="tutorial-content">
-      <div class="grid-steps">
-        <div class="step-box">
-          <h4>1. Busca</h4>
-          <p>Use a barra de busca para encontrar rapidamente uma moeda pelo nome (Ex: "Bitcoin") ou ticker (Ex: "BTC").</p>
-        </div>
-        <div class="step-box">
-          <h4>2. Filtros Dinâmicos</h4>
-          <p>Alterne entre "Top 50" para maior segurança ou o "Top 250" para maior diversidade de risco.</p>
-        </div>
-        <div class="step-box">
-          <h4>3. Indicador RSI</h4>
-          <p>RSI ≤ 35 indica sobrevenda (potencial reversão). Linhas verdes claras indicam Top 50 com sobrevenda.</p>
-        </div>
-      </div>
-    </div>
+  <div class="tabs">
+    <button class="tab-btn active" id="tabOportunidades" onclick="mudarAba('oportunidades')">⚡ Oportunidades de Compra</button>
+    <button class="tab-btn" id="tabMinhas" onclick="mudarAba('minhas')">⭐ Minhas Moedas Cadastradas</button>
   </div>
 
-  <!-- CONTROLES DA APLICAÇÃO -->
   <div class="controls">
+    <input type="text" id="campoBusca" placeholder="🔍 Buscar moeda (Ex: SOL, BTC)..." oninput="renderizar()">
+    <input type="text" id="novaMoedaInput" placeholder="Cadastrar Symbol (Ex: ADA, MATIC)" style="max-width: 220px;">
+    <button onclick="cadastrarMoeda()">➕ Cadastrar</button>
     <button onclick="carregarDados()">🔄 Atualizar</button>
-    
-    <input type="text" id="campoBusca" placeholder="🔍 Buscar por nome ou símbolo (Ex: SOL, Ethereum)..." onkeyup="renderizarTabela()">
-    
-    <select id="filtroGrupo" onchange="renderizarTabela()">
-      <option value="todos">Top 250</option>
-      <option value="top50" selected>Top 50</option>
-    </select>
-
-    <select id="filtroVolume" onchange="renderizarTabela()">
-      <option value="1000000">Vol > $1M</option>
-      <option value="5000000" selected>Vol > $5M</option>
-    </select>
   </div>
 
-  <div id="loading" class="loading">Carregando dados do mercado...</div>
-
-  <table id="tabelaCripto" style="display:none;">
-    <thead>
-      <tr>
-        <th>Moeda</th>
-        <th>Preço (USD)</th>
-        <th>Queda 24h</th>
-        <th>Volume 24h</th>
-        <th>RSI Est.</th>
-        <th>Oportunidade</th>
-      </tr>
-    </thead>
-    <tbody id="corpoTabela"></tbody>
-  </table>
+  <div id="loading" class="loading">Analisando mercado e calculando indicadores...</div>
+  <div id="gridCriptos" class="grid-crypto"></div>
 </div>
 
 <script>
   let moedasGlobais = [];
+  let minhasMoedas = JSON.parse(localStorage.getItem('minhasMoedas')) || ['BTC', 'ETH', 'SOL'];
+  let abaAtual = 'oportunidades';
 
-  function toggleTutorial() {
-    const content = document.getElementById('tutorialContent');
-    const icon = document.getElementById('tutorialIcon');
-    if (content.style.display === 'none') {
-      content.style.display = 'block';
-      icon.innerText = '[ Ocultar ]';
-    } else {
-      content.style.display = 'none';
-      icon.innerText = '[ Mostrar ]';
+  function mudarAba(aba) {
+    abaAtual = aba;
+    document.getElementById('tabOportunidades').classList.toggle('active', aba === 'oportunidades');
+    document.getElementById('tabMinhas').classList.toggle('active', aba === 'minhas');
+    renderizar();
+  }
+
+  function cadastrarMoeda() {
+    const input = document.getElementById('novaMoedaInput');
+    const symbol = input.value.trim().toUpperCase();
+    if (symbol && !minhasMoedas.includes(symbol)) {
+      minhasMoedas.push(symbol);
+      localStorage.setItem('minhasMoedas', JSON.stringify(minhasMoedas));
+      input.value = '';
+      if (abaAtual === 'minhas') renderizar();
     }
+  }
+
+  function removerMoeda(symbol) {
+    minhasMoedas = minhasMoedas.filter(s => s !== symbol);
+    localStorage.setItem('minhasMoedas', JSON.stringify(minhasMoedas));
+    renderizar();
   }
 
   async function carregarDados() {
     document.getElementById('loading').style.display = 'block';
-    document.getElementById('tabelaCripto').style.display = 'none';
+    document.getElementById('gridCriptos').innerHTML = '';
 
     try {
-      const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=true');
+      const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=150&page=1&sparkline=true');
       moedasGlobais = await res.json();
-      renderizarTabela();
+      renderizar();
     } catch (err) {
-      document.getElementById('loading').innerText = 'Erro ao carregar dados. Tente novamente.';
+      document.getElementById('loading').innerText = 'Erro ao carregar dados do mercado.';
     }
   }
 
@@ -259,46 +186,133 @@
     return Math.round(100 - (100 / (1 + rs)));
   }
 
-  function renderizarTabela() {
-    const minVol = parseFloat(document.getElementById('filtroVolume').value);
-    const apenasTop50 = document.getElementById('filtroGrupo').value === 'top50';
-    const termoBusca = document.getElementById('campoBusca').value.toLowerCase();
-    
-    let filtradas = moedasGlobais.filter(m => {
-      const passaVolume = m.total_volume >= minVol;
-      const passaQueda = m.price_change_percentage_24h < 0;
-      const passaTop50 = apenasTop50 ? m.market_cap_rank <= 50 : true;
-      const passaBusca = m.name.toLowerCase().includes(termoBusca) || m.symbol.toLowerCase().includes(termoBusca);
-      return passaVolume && passaQueda && passaTop50 && passaBusca;
-    });
+  // ALGORITMO DE ANÁLISE AUTOMÁTICA
+  function analisarOportunidade(m, rsi) {
+    let score = 0;
+    let motivos = [];
 
-    filtradas.sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
+    // 1. Queda acentuada (Sobrevenda)
+    if (m.price_change_percentage_24h <= -5) { score += 35; motivos.push("Queda forte de 24h (Desconto)"); }
+    else if (m.price_change_percentage_24h < 0) { score += 15; motivos.push("Leve queda recente"); }
 
-    const tbody = document.getElementById('corpoTabela');
-    tbody.innerHTML = '';
+    // 2. Indicador RSI
+    if (rsi <= 30) { score += 40; motivos.push("RSI muito baixo (Sobrevendido)"); }
+    else if (rsi <= 40) { score += 20; motivos.push("RSI moderado/baixo"); }
 
-    filtradas.slice(0, 20).forEach(m => {
-      const rsi = calcularRsiAproximado(m);
-      const eTop50 = m.market_cap_rank <= 50;
-      const estaSobrevendido = rsi <= 35;
-      const alertaClasse = (estaSobrevendido && eTop50) ? 'alert-high' : '';
+    // 3. Segurança do Projeto (Market Cap)
+    if (m.market_cap_rank <= 30) { score += 25; motivos.push("Projeto sólido (Top 30 Market Cap)"); }
+    else if (m.market_cap_rank <= 100) { score += 10; motivos.push("Risco intermediário"); }
 
-      const tr = document.createElement('tr');
-      if (alertaClasse) tr.className = alertaClasse;
+    let status = "";
+    let classe = "";
 
-      tr.innerHTML = `
-        <td><strong>${m.name}</strong> (${m.symbol.toUpperCase()}) ${eTop50 ? '<span class="badge-top50">TOP 50</span>' : ''}</td>
-        <td>$${m.current_price < 1 ? m.current_price.toFixed(4) : m.current_price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-        <td class="drop">${m.price_change_percentage_24h.toFixed(2)}%</td>
-        <td>$${(m.total_volume / 1000000).toFixed(2)}M</td>
-        <td class="${estaSobrevendido ? 'rsi-oversold' : ''}">${rsi}</td>
-        <td>${estaSobrevendido ? '⚠️' : '—'}</td>
-      `;
-      tbody.appendChild(tr);
+    if (score >= 65) {
+      status = "🟢 VALE A PENA (Oportunidade de Compra)";
+      classe = "verdict-good";
+    } else if (score >= 40) {
+      status = "🟡 ATENÇÃO (Aguarde ou entre fracionado)";
+      classe = "verdict-medium";
+    } else {
+      status = "🔴 EVITAR NO MOMENTO (Sem sinal claro)";
+      classe = "verdict-bad";
+    }
+
+    return { status, classe, score, resumo: motivos.join(" + ") };
+  }
+
+  function renderizar() {
+    const busca = document.getElementById('campoBusca').value.toLowerCase();
+    const container = document.getElementById('gridCriptos');
+    container.innerHTML = '';
+
+    let lista = moedasGlobais.filter(m => {
+      const passaBusca = m.name.toLowerCase().includes(busca) || m.symbol.toLowerCase().includes(busca);
+      if (abaAtual === 'minhas') {
+        return passaBusca && minhasMoedas.includes(m.symbol.toUpperCase());
+      } else {
+        return passaBusca && m.price_change_percentage_24h < 0;
+      }
     });
 
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('tabelaCripto').style.display = 'table';
+
+    if (lista.length === 0) {
+      container.innerHTML = '<p style="text-align:center;">Nenhuma moeda encontrada.</p>';
+      return;
+    }
+
+    lista.slice(0, 10).forEach((m, idx) => {
+      const rsi = calcularRsiAproximado(m);
+      const analise = analisarOportunidade(m, rsi);
+      const symbolUpper = m.symbol.toUpperCase();
+      const binanceLink = `https://www.binance.com/pt-BR/trade/${symbolUpper}_USDT?type=spot`;
+      const chartId = `tradingview_${m.id}_${idx}`;
+
+      const card = document.createElement('div');
+      card.className = 'crypto-card';
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <img src="${m.image}" style="width:30px; height:30px;">
+            <h3 style="margin:0;">${m.name} (${symbolUpper})</h3>
+          </div>
+          <div>
+            ${abaAtual === 'minhas' ? `<button onclick="removerMoeda('${symbolUpper}')" style="background:#ef4444; border:none; margin-right:5px;">🗑️</button>` : ''}
+            <a href="${binanceLink}" target="_blank" class="btn-binance">🟡 Ir para Binance</a>
+          </div>
+        </div>
+
+        <!-- PAINEL DE ANÁLISE AUTOMÁTICA -->
+        <div class="analysis-box ${analise.classe}">
+          <div>
+            <strong>${analise.status}</strong>
+            <div style="font-size:0.8rem; margin-top:4px;">Motivo: ${analise.resumo}</div>
+          </div>
+          <div style="text-align:right;">
+            <span style="font-size:0.75rem;">Score de Oportunidade</span>
+            <div style="font-size:1.2rem; font-weight:bold;">${analise.score}/100</div>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <span>Preço</span>
+            <strong>$${m.current_price.toLocaleString('en-US')}</strong>
+          </div>
+          <div class="metric-item">
+            <span>Queda 24h</span>
+            <strong class="drop">${m.price_change_percentage_24h.toFixed(2)}%</strong>
+          </div>
+          <div class="metric-item">
+            <span>RSI Est.</span>
+            <strong>${rsi}</strong>
+          </div>
+          <div class="metric-item">
+            <span>Volume</span>
+            <strong>$${(m.total_volume / 1000000).toFixed(1)}M</strong>
+          </div>
+        </div>
+
+        <div>
+          <div id="${chartId}" class="chart-container"></div>
+        </div>
+      `;
+
+      container.appendChild(card);
+
+      setTimeout(() => {
+        new TradingView.widget({
+          "autosize": true,
+          "symbol": `BINANCE:${symbolUpper}USDT`,
+          "interval": "D",
+          "theme": "dark",
+          "style": "1",
+          "locale": "br",
+          "hide_top_toolbar": false,
+          "container_id": chartId
+        });
+      }, 200);
+    });
   }
 
   carregarDados();
