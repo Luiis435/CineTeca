@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InvestApp Pro</title>
+  <title>InvestApp Ultra</title>
+  <!-- PWA Manifest Inline Data -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"InvestApp Pro","short_name":"InvestApp","start_url":".","display":"standalone","background_color":"#f4f6f9","theme_color":"#2563eb"}'>
+  
   <style>
     :root {
       --bg: #f4f6f9;
@@ -22,47 +25,49 @@
     }
 
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text-main); margin: 0; padding-bottom: 75px; }
+    body { background-color: var(--bg); color: var(--text-main); margin: 0; padding-bottom: 90px; }
 
-    /* Header Estilo App */
-    header { padding: 24px 20px 10px 20px; }
-    .greeting { font-size: 1.4rem; font-weight: 700; color: var(--text-main); margin: 0 0 15px 0; }
+    header { padding: 18px 20px 10px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border); margin-bottom: 15px; }
+    .greeting { font-size: 1.3rem; font-weight: 700; margin: 0; color: var(--text-main); }
 
-    /* Cards Estilo Dashboard */
-    .card { background: var(--card-bg); border-radius: 16px; padding: 18px; margin: 0 20px 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border); }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-    
-    /* Carteira Resumo */
-    .wallet-info { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
-    .wallet-value { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
-    .badge-gain { background: var(--success-bg); color: var(--success); padding: 3px 8px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; }
+    .card { background: var(--card-bg); border-radius: 16px; padding: 18px; margin: 0 20px 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid var(--border); }
+    .card-title { font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 
-    /* Lista Estilo Menu/Ranking */
-    .menu-list { display: flex; flex-direction: column; }
-    .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); text-decoration: none; color: var(--text-main); font-weight: 600; cursor: pointer; }
-    .menu-item:last-child { border-bottom: none; }
-    .menu-item-left { display: flex; align-items: center; gap: 12px; }
-    .icon-box { width: 32px; height: 32px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; border: 1px solid var(--border); }
+    .wallet-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .wallet-stat { background: var(--bg); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
+    .wallet-stat label { font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; }
+    .wallet-stat span { font-size: 0.95rem; font-weight: 700; }
 
-    /* Filtros / Pills */
-    .pill-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    input, select, button { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; outline: none; }
+    input:focus, select:focus { border-color: var(--primary); }
+    .btn-main { background: var(--primary); color: #fff; border: none; cursor: pointer; font-weight: 700; }
+    .btn-sec { background: var(--bg); color: var(--text-main); border: 1px solid var(--border); cursor: pointer; font-weight: 600; }
+
+    .pill-container { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 10px 20px; scrollbar-width: none; }
     .pill { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; cursor: pointer; }
     .pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-    /* Botão de Ação & Análise */
-    .btn-analyze { background: var(--primary-light); color: var(--primary); border: none; padding: 10px; border-radius: 10px; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; font-size: 0.85rem; }
-    .btn-analyze:hover { background: #dbeafe; }
+    .asset-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .asset-row:last-child { border-bottom: none; }
+    .badge { padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; }
+    .badge-gain { background: var(--success-bg); color: var(--success); }
+    .badge-loss { background: var(--danger-bg); color: var(--danger); }
 
-    .analysis-box { border-radius: 10px; padding: 12px; display: none; margin-top: 10px; font-size: 0.85rem; }
+    .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .rank-item:last-child { border-bottom: none; }
+    .rank-pos { font-weight: 800; font-size: 0.9rem; color: var(--text-muted); width: 28px; }
+    .rank-pos.top3 { color: var(--primary); }
+
+    .btn-analyze { background: var(--primary-light); color: var(--primary); border: none; padding: 8px; border-radius: 8px; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; font-size: 0.8rem; }
+    .analysis-box { border-radius: 8px; padding: 10px; display: none; margin-top: 10px; font-size: 0.8rem; }
     .verdict-good { background: var(--success-bg); color: #065f46; border: 1px solid var(--success); }
     .verdict-wait { background: var(--warning-bg); color: #92400e; border: 1px solid var(--warning); }
     .verdict-bad { background: var(--danger-bg); color: #991b1b; border: 1px solid var(--danger); }
 
-    .chart-container { height: 220px; width: 100%; border-radius: 10px; overflow: hidden; margin-top: 10px; background: #f8fafc; border: 1px solid var(--border); }
+    .chart-container { height: 180px; width: 100%; border-radius: 8px; overflow: hidden; margin-top: 10px; background: #f8fafc; border: 1px solid var(--border); }
 
-    /* Bottom Navigation Bar */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 0; z-index: 1000; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
     .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); text-decoration: none; font-size: 0.7rem; font-weight: 600; cursor: pointer; }
     .nav-item.active { color: var(--primary); }
     .nav-icon { font-size: 1.2rem; margin-bottom: 2px; }
@@ -70,79 +75,147 @@
     .page { display: none; }
     .page.active { display: block; }
   </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
 
-  <!-- NAVEGAÇÃO SUPERIOR -->
   <header>
-    <h1 class="greeting">Boa noite, Investidor !</h1>
-    
-    <!-- RESUMO DE CARTEIRA ESTILO BANCO -->
-    <div class="card" style="margin: 0 0 15px 0;">
-      <div class="card-header">
-        <span style="font-weight: 600; color: var(--text-muted); font-size: 0.9rem;">Minha Carteira</span>
-        <span>👁️</span>
-      </div>
-      <div class="wallet-info">
-        <span class="wallet-value">R$ 62.105,00</span>
-        <span class="badge-gain">+19,20% ↗</span>
-      </div>
-    </div>
-
-    <!-- SELETOR DE CATEGORIAS -->
-    <div class="pill-container">
-      <button class="pill active" onclick="filtrarCategoria('CRIPTO', this)">🪙 Criptos & Memes</button>
-      <button class="pill" onclick="filtrarCategoria('ACAO', this)">🏢 Ações</button>
-      <button class="pill" onclick="filtrarCategoria('FII', this)">🏢 FIIs</button>
-    </div>
+    <h1 class="greeting">InvestApp Ultra ⚡</h1>
   </header>
 
-  <!-- PÁGINA HOME / RADAR -->
-  <main id="page-home" class="page active">
-    <div id="listaAtivos"></div>
-  </main>
-
-  <!-- PÁGINA RANKING -->
-  <main id="page-ranking" class="page">
+  <!-- PÁGINA 1: CARTEIRA & PROVENTOS -->
+  <main id="page-carteira" class="page active">
     <div class="card">
-      <div class="card-title" style="margin-bottom:15px;">🏅 Rankings de Mercado</div>
-      <div class="menu-list">
-        <div class="menu-item" onclick="selecionarFiltroRapido('CRIPTO')">
-          <div class="menu-item-left"><div class="icon-box">🪙</div> Criptomoedas Promissoras</div>
-          <div>›</div>
+      <div class="card-title">💼 Total Patrimônio</div>
+      <div class="wallet-grid">
+        <div class="wallet-stat">
+          <label>Atual (R$)</label>
+          <span id="totalAtual">R$ 0,00</span>
         </div>
-        <div class="menu-item" onclick="selecionarFiltroRapido('ACAO')">
-          <div class="menu-item-left"><div class="icon-box">📊</div> Ações Mais Negociadas</div>
-          <div>›</div>
+        <div class="wallet-stat">
+          <label>Lucro/Prejuízo</label>
+          <span id="totalLucro" class="badge">R$ 0,00</span>
         </div>
-        <div class="menu-item" onclick="selecionarFiltroRapido('FII')">
-          <div class="menu-item-left"><div class="icon-box">🏢</div> Maiores Dividendos FIIs</div>
-          <div>›</div>
+        <div class="wallet-stat">
+          <label>Proventos</label>
+          <span id="totalProventos" style="color:var(--success)">R$ 0,00</span>
         </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Alocação de Ativos</div>
+      <div style="max-height: 200px; display: flex; justify-content: center;">
+        <canvas id="chartAlocacao"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">➕ Lançar Ativo</div>
+      <div class="form-group">
+        <div style="display:flex; gap:8px;">
+          <select id="inputTipo" style="width: 35%;">
+            <option value="CRIPTO">🪙 Cripto</option>
+            <option value="ACAO">🏢 Ação</option>
+            <option value="FII">🏢 FII</option>
+          </select>
+          <input type="text" id="inputSymbol" placeholder="Ticker (Ex: BTC, PETR4)" style="text-transform:uppercase; flex:1;">
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input type="number" id="inputQtd" placeholder="Qtd" step="any" style="flex:1;">
+          <input type="number" id="inputPM" placeholder="Preço Pago (Unid)" step="any" style="flex:1;">
+        </div>
+        <button class="btn-main" onclick="adicionarOperacao()">Salvar Ativo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💰 Registrar Dividendos/Proventos</div>
+      <div class="form-group">
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="provSymbol" placeholder="Ticker (Ex: MXRF11)" style="text-transform:uppercase; flex:1;">
+          <input type="number" id="provValor" placeholder="Valor (R$)" step="any" style="flex:1;">
+        </div>
+        <button class="btn-sec" onclick="adicionarProvento()">Lançar Dividendos</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📦 Meus Ativos</div>
+      <div id="listaCarteiraReal">Carregando carteira...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ Backup & Dados</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-sec" style="flex:1;" onclick="exportarDados()">📥 Exportar JSON</button>
+        <button class="btn-sec" style="flex:1;" onclick="document.getElementById('importFile').click()">📤 Importar JSON</button>
+        <input type="file" id="importFile" style="display:none;" onchange="importarDados(event)" accept=".json">
       </div>
     </div>
   </main>
 
-  <!-- BOTTOM NAVIGATION -->
+  <!-- PÁGINA 2: RADAR DE SINAIS -->
+  <main id="page-radar" class="page">
+    <div class="pill-container">
+      <button class="pill active" onclick="filtrarRadar('CRIPTO', this)">🪙 Criptos</button>
+      <button class="pill" onclick="filtrarRadar('ACAO', this)">🏢 Ações B3</button>
+      <button class="pill" onclick="filtrarRadar('FII', this)">🏢 FIIs</button>
+    </div>
+    <div id="listaRadar"></div>
+  </main>
+
+  <!-- PÁGINA 3: RANKINGS -->
+  <main id="page-ranking" class="page">
+    <div class="pill-container">
+      <button class="pill active" onclick="carregarRanking('ALTAS', this)">🚀 Altas Cripto</button>
+      <button class="pill" onclick="carregarRanking('MEMES', this)">🔥 Memecoins</button>
+      <button class="pill" onclick="carregarRanking('ACOES', this)">📊 Top B3</button>
+      <button class="pill" onclick="carregarRanking('FIIS', this)">🏢 FIIs (DY)</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title" id="tituloRanking">🚀 Ranking de Mercado</div>
+      <div id="conteudoRanking">Carregando dados...</div>
+    </div>
+  </main>
+
+  <!-- NAV BOTTOM -->
   <nav class="bottom-nav">
-    <div class="nav-item active" onclick="navegar('home', this)">
-      <span class="nav-icon">🏠</span>
-      <span>Home</span>
+    <div class="nav-item active" onclick="navegar('carteira', this)">
+      <span class="nav-icon">💼</span>
+      <span>Carteira</span>
+    </div>
+    <div class="nav-item" onclick="navegar('radar', this)">
+      <span class="nav-icon">⚡</span>
+      <span>Radar</span>
     </div>
     <div class="nav-item" onclick="navegar('ranking', this)">
-      <span class="nav-icon">🥇</span>
-      <span>Ranking</span>
+      <span class="nav-icon">🏆</span>
+      <span>Rankings</span>
     </div>
-    <div class="nav-item" onclick="carregarDados()">
+    <div class="nav-item" onclick="carregarMercado()">
       <span class="nav-icon">🔄</span>
       <span>Atualizar</span>
     </div>
   </nav>
 
 <script>
-  let moedasGlobais = [];
-  let categoriaAtual = 'CRIPTO';
+  let moedasMercado = [];
+  let cotacoesB3 = {};
+  let cotacaoDolar = 5.60;
+  
+  let carteira = JSON.parse(localStorage.getItem('carteiraPro')) || [
+    { symbol: 'BTC', tipo: 'CRIPTO', qtd: 0.005, pm: 60000 },
+    { symbol: 'PETR4', tipo: 'ACAO', qtd: 100, pm: 35.50 }
+  ];
+  let proventos = JSON.parse(localStorage.getItem('proventosPro')) || 0;
+
+  let categoriaRadar = 'CRIPTO';
+  let rankingAtual = 'ALTAS';
+  let chartInstancia = null;
 
   function navegar(pagina, el) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -150,34 +223,258 @@
     
     document.getElementById(`page-${pagina}`).classList.add('active');
     el.classList.add('active');
+
+    if(pagina === 'ranking') carregarRanking(rankingAtual);
   }
 
-  function filtrarCategoria(tipo, el) {
-    categoriaAtual = tipo;
-    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  function filtrarRadar(tipo, el) {
+    categoriaRadar = tipo;
+    document.querySelectorAll('#page-radar .pill').forEach(p => p.classList.remove('active'));
     el.classList.add('active');
-    renderizar();
+    renderizarRadar();
   }
 
-  function selecionarFiltroRapido(tipo) {
-    document.querySelectorAll('.pill').forEach(p => {
-      if(p.innerText.includes(tipo === 'CRIPTO' ? 'Criptos' : tipo === 'ACAO' ? 'Ações' : 'FIIs')) {
-        p.click();
-      }
-    });
-    navegar('home', document.querySelectorAll('.nav-item')[0]);
-  }
-
-  async function carregarDados() {
+  async function carregarMercado() {
     try {
-      const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true');
-      moedasGlobais = await res.json();
-      renderizar();
-    } catch (err) {
-      console.error("Erro ao carregar mercado", err);
+      // 1. Dólar
+      const resUsd = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=brl');
+      const dataUsd = await resUsd.json();
+      if(dataUsd.tether) cotacaoDolar = dataUsd.tether.brl;
+
+      // 2. Criptos
+      const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=150&page=1&sparkline=true');
+      moedasMercado = await res.json();
+
+      // 3. Ações/FIIs B3 via BRAPI (Inclusão de cotação real para ativos da B3)
+      const tickersB3 = carteira.filter(a => a.tipo !== 'CRIPTO').map(a => a.symbol).join(',');
+      if (tickersB3) {
+        try {
+          const resB3 = await fetch(`https://brapi.dev/api/quote/${tickersB3}`);
+          const dataB3 = await resB3.json();
+          if (dataB3.results) {
+            dataB3.results.forEach(item => {
+              cotacoesB3[item.symbol] = item.regularMarketPrice;
+            });
+          }
+        } catch(e) { console.log("BRAPI offline ou requisição com limite."); }
+      }
+
+      renderizarCarteira();
+      renderizarRadar();
+      carregarRanking(rankingAtual);
+    } catch(err) {
+      console.error("Erro ao sincronizar mercado", err);
     }
   }
 
+  function adicionarOperacao() {
+    const tipo = document.getElementById('inputTipo').value;
+    const symbol = document.getElementById('inputSymbol').value.toUpperCase().trim();
+    const qtd = parseFloat(document.getElementById('inputQtd').value);
+    const pm = parseFloat(document.getElementById('inputPM').value);
+
+    if (!symbol || isNaN(qtd) || isNaN(pm) || qtd <= 0) return alert("Preencha todos os campos.");
+
+    const idx = carteira.findIndex(a => a.symbol === symbol);
+    if (idx > -1) {
+      const totalAntigo = carteira[idx].qtd * carteira[idx].pm;
+      const totalNovo = qtd * pm;
+      const novaQtd = carteira[idx].qtd + qtd;
+      carteira[idx].pm = (totalAntigo + totalNovo) / novaQtd;
+      carteira[idx].qtd = novaQtd;
+    } else {
+      carteira.push({ symbol, tipo, qtd, pm });
+    }
+
+    localStorage.setItem('carteiraPro', JSON.stringify(carteira));
+    document.getElementById('inputSymbol').value = '';
+    document.getElementById('inputQtd').value = '';
+    document.getElementById('inputPM').value = '';
+
+    carregarMercado();
+  }
+
+  function adicionarProvento() {
+    const val = parseFloat(document.getElementById('provValor').value);
+    if (isNaN(val) || val <= 0) return alert("Digite um valor válido.");
+    proventos += val;
+    localStorage.setItem('proventosPro', JSON.stringify(proventos));
+    document.getElementById('provValor').value = '';
+    renderizarCarteira();
+  }
+
+  function removerAtivo(symbol) {
+    carteira = carteira.filter(a => a.symbol !== symbol);
+    localStorage.setItem('carteiraPro', JSON.stringify(carteira));
+    renderizarCarteira();
+  }
+
+  function renderizarCarteira() {
+    const container = document.getElementById('listaCarteiraReal');
+    if (carteira.length === 0) {
+      container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted);">Sua carteira está vazia.</p>';
+      return;
+    }
+
+    let valorTotalAtualBRL = 0;
+    let valorTotalInvestidoBRL = 0;
+    let totalsByTipo = { CRIPTO: 0, ACAO: 0, FII: 0 };
+
+    let html = carteira.map(item => {
+      let precoAtualUnitarioBRL = item.pm;
+
+      if (item.tipo === 'CRIPTO') {
+        let m = moedasMercado.find(c => c.symbol.toUpperCase() === item.symbol);
+        if (m) precoAtualUnitarioBRL = m.current_price * cotacaoDolar;
+      } else if (cotacoesB3[item.symbol]) {
+        precoAtualUnitarioBRL = cotacoesB3[item.symbol];
+      }
+
+      const totalInvestido = item.qtd * item.pm;
+      const totalAtual = item.qtd * precoAtualUnitarioBRL;
+      const lucroPrejuizo = totalAtual - totalInvestido;
+      const rentabilidadePct = totalInvestido > 0 ? (lucroPrejuizo / totalInvestido) * 100 : 0;
+
+      valorTotalAtualBRL += totalAtual;
+      valorTotalInvestidoBRL += totalInvestido;
+      totalsByTipo[item.tipo] = (totalsByTipo[item.tipo] || 0) + totalAtual;
+
+      const isProfit = lucroPrejuizo >= 0;
+
+      return `
+        <div class="asset-row">
+          <div>
+            <strong>${item.symbol}</strong> <small style="color:var(--text-muted)">(${item.tipo})</small><br>
+            <span style="font-size:0.75rem; color:var(--text-muted);">Qtd: ${item.qtd} | PM: R$ ${item.pm.toFixed(2)}</span>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:700;">R$ ${totalAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+            <span class="badge ${isProfit ? 'badge-gain' : 'badge-loss'}">
+              ${isProfit ? '+' : ''}${rentabilidadePct.toFixed(2)}% (R$ ${lucroPrejuizo.toFixed(2)})
+            </span>
+            <span onclick="removerAtivo('${item.symbol}')" style="cursor:pointer; margin-left:8px; font-size:0.8rem;">🗑️</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = html;
+
+    const lucroGeral = valorTotalAtualBRL - valorTotalInvestidoBRL;
+    document.getElementById('totalAtual').innerText = `R$ ${valorTotalAtualBRL.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+    document.getElementById('totalProventos').innerText = `R$ ${proventos.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+    
+    const badgeLucro = document.getElementById('totalLucro');
+    badgeLucro.innerText = `R$ ${lucroGeral.toFixed(2)}`;
+    badgeLucro.className = `badge ${lucroGeral >= 0 ? 'badge-gain' : 'badge-loss'}`;
+
+    renderizarGraficoAlocacao(totalsByTipo);
+  }
+
+  function renderizarGraficoAlocacao(totals) {
+    const ctx = document.getElementById('chartAlocacao').getContext('2d');
+    if (chartInstancia) chartInstancia.destroy();
+
+    chartInstancia = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Criptos', 'Ações', 'FIIs'],
+        datasets: [{
+          data: [totals.CRIPTO || 0, totals.ACAO || 0, totals.FII || 0],
+          backgroundColor: ['#2563eb', '#10b981', '#f59e0b']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+
+  // EXPORTAR & IMPORTAR BACKUP
+  function exportarDados() {
+    const data = JSON.stringify({ carteira, proventos });
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `InvestApp_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+  }
+
+  function importarDados(e) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        const imported = JSON.parse(event.target.result);
+        if (imported.carteira) {
+          carteira = imported.carteira;
+          proventos = imported.proventos || 0;
+          localStorage.setItem('carteiraPro', JSON.stringify(carteira));
+          localStorage.setItem('proventosPro', JSON.stringify(proventos));
+          carregarMercado();
+          alert("Backup restaurado com sucesso!");
+        }
+      } catch(err) { alert("Arquivo JSON inválido."); }
+    };
+    reader.readAsText(e.target.files[0]);
+  }
+
+  // RANKINGS
+  function carregarRanking(tipo, btn) {
+    rankingAtual = tipo;
+    if(btn) {
+      document.querySelectorAll('#page-ranking .pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    const container = document.getElementById('conteudoRanking');
+    const titulo = document.getElementById('tituloRanking');
+    let dados = [];
+
+    if (tipo === 'ALTAS') {
+      titulo.innerText = "🚀 Maiores Altas 24h (Cripto)";
+      dados = [...moedasMercado]
+        .sort((a, b) => (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0))
+        .slice(0, 10)
+        .map(m => ({ name: m.name, symbol: m.symbol.toUpperCase(), val: `$${m.current_price}`, var: `${(m.price_change_percentage_24h || 0).toFixed(2)}%`, isGain: (m.price_change_percentage_24h || 0) >= 0 }));
+    } else if (tipo === 'MEMES') {
+      titulo.innerText = "🔥 Top Memecoins de Volume";
+      const memesLista = ['PEPE', 'SHIB', 'DOGE', 'BONK', 'WIF', 'FLOKI'];
+      dados = moedasMercado
+        .filter(m => memesLista.includes(m.symbol.toUpperCase()))
+        .sort((a, b) => b.total_volume - a.total_volume)
+        .map(m => ({ name: m.name, symbol: m.symbol.toUpperCase(), val: `$${m.current_price}`, var: `${(m.price_change_percentage_24h || 0).toFixed(2)}%`, isGain: (m.price_change_percentage_24h || 0) >= 0 }));
+    } else if (tipo === 'ACOES') {
+      titulo.innerText = "📊 Ações Mais Negociadas B3";
+      dados = [
+        { name: "Petrobras", symbol: "PETR4", val: "R$ 38,20", var: "+1.85%", isGain: true },
+        { name: "Vale", symbol: "VALE3", val: "R$ 61,50", var: "-0.40%", isGain: false },
+        { name: "Itaú Unibanco", symbol: "ITUB4", val: "R$ 34,10", var: "+0.92%", isGain: true }
+      ];
+    } else if (tipo === 'FIIS') {
+      titulo.innerText = "🏢 FIIs de Maior Dividend Yield";
+      dados = [
+        { name: "MXRF11", symbol: "MXRF11", val: "R$ 10,25", var: "12.8% DY", isGain: true },
+        { name: "HGLG11", symbol: "HGLG11", val: "R$ 161,00", var: "9.2% DY", isGain: true }
+      ];
+    }
+
+    container.innerHTML = dados.map((item, i) => `
+      <div class="rank-item">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="rank-pos ${i < 3 ? 'top3' : ''}">#${i + 1}</span>
+          <div><strong>${item.name}</strong> <small style="color:var(--text-muted)">(${item.symbol})</small></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-weight:700;">${item.val}</div>
+          <span class="badge ${item.isGain ? 'badge-gain' : 'badge-loss'}">${item.var}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // RADAR DE SINAIS
   function executarAnalise(idx, item) {
     const box = document.getElementById(`analysis_box_${idx}`);
     const prices = item.sparkline_in_7d ? item.sparkline_in_7d.price : [];
@@ -197,20 +494,20 @@
 
       if (rsi <= 35 || change24h <= -6) {
         veredito = "🟢 PONTO DE COMPRA DETECTADO";
-        motivo = "O ativo caiu bastante recentemente e está em zona de desconto técnico.";
+        motivo = "O ativo está em região de sobrevenda (desconto).";
         classe = "verdict-good";
       } else if (rsi >= 65 || change24h >= 8) {
-        veredito = "🔴 EVITAR NO MOMENTO";
-        motivo = "Preço esticado e em região de sobrecompra. Risco de correção alto.";
+        veredito = "🔴 NÃO COMPRAR AGORA";
+        motivo = "Preço esticado. Risco elevado de correção.";
         classe = "verdict-bad";
       } else {
-        veredito = "🟡 AGUARDAR OPORTUNIDADE";
-        motivo = "Ativo em movimento lateral. Aguarde uma confirmação de tendência.";
+        veredito = "🟡 AGUARDAR CONFIRMAÇÃO";
+        motivo = "Ativo consolidado. Sem sinal claro no momento.";
         classe = "verdict-wait";
       }
     } else {
-      veredito = "🟡 TENDÊNCIA DE MERCADO";
-      motivo = "Verifique a estrutura do gráfico abaixo para confirmar entrada.";
+      veredito = "🟡 ANÁLISE DE TENDÊNCIA";
+      motivo = "Observe a estrutura de candles do gráfico antes de operar.";
       classe = "verdict-wait";
     }
 
@@ -224,17 +521,16 @@
     return `BINANCE:${symbol}USDT`;
   }
 
-  function renderizar() {
-    const container = document.getElementById('listaAtivos');
+  function renderizarRadar() {
+    const container = document.getElementById('listaRadar');
     container.innerHTML = '';
-
     let lista = [];
 
-    if (categoriaAtual === 'CRIPTO') {
-      lista = moedasGlobais.slice(0, 10).map(m => ({ ...m, symbol: m.symbol.toUpperCase(), tipo: 'CRIPTO' }));
+    if (categoriaRadar === 'CRIPTO') {
+      lista = moedasMercado.slice(0, 10).map(m => ({ ...m, symbol: m.symbol.toUpperCase(), tipo: 'CRIPTO' }));
     } else {
-      const padrao = categoriaAtual === 'ACAO' ? ['PETR4', 'VALE3', 'ITUB4', 'BBAS3'] : ['MXRF11', 'HGLG11', 'XPML11'];
-      lista = padrao.map(s => ({ symbol: s, name: s, tipo: categoriaAtual }));
+      const padrao = categoriaRadar === 'ACAO' ? ['PETR4', 'VALE3', 'ITUB4'] : ['MXRF11', 'HGLG11'];
+      lista = padrao.map(s => ({ symbol: s, name: s, tipo: categoriaRadar }));
     }
 
     lista.forEach((item, idx) => {
@@ -245,31 +541,14 @@
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
-        <div class="card-header" style="margin-bottom:8px;">
-          <div class="card-title">
-            ${item.image ? `<img src="${item.image}" style="width:22px; height:22px;">` : '📈'}
-            ${item.name} (${symbolUpper})
-          </div>
-          <span style="font-weight:700; font-size:0.95rem;">
-            ${item.current_price ? '$' + item.current_price.toLocaleString('en-US') : ''}
-          </span>
+        <div class="card-title">
+          <span>${item.name} (${symbolUpper})</span>
+          <span>${item.current_price ? '$' + item.current_price.toLocaleString('en-US') : ''}</span>
         </div>
-
-        ${item.price_change_percentage_24h !== undefined ? `
-          <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
-            <span>Variação 24h</span>
-            <span style="font-weight:700; color: ${item.price_change_percentage_24h < 0 ? 'var(--danger)' : 'var(--success)'}">
-              ${item.price_change_percentage_24h.toFixed(2)}%
-            </span>
-          </div>
-        ` : ''}
-
         <button class="btn-analyze" onclick='executarAnalise(${idx}, ${JSON.stringify(item)})'>⚡ Analisar Ativo</button>
         <div id="analysis_box_${idx}" class="analysis-box"></div>
-
         <div id="${chartId}" class="chart-container"></div>
       `;
-
       container.appendChild(card);
 
       setTimeout(() => {
@@ -281,18 +560,21 @@
             "theme": "light",
             "style": "1",
             "locale": "br",
-            "enable_publishing": false,
             "container_id": chartId
           });
-        } catch(e) {
-          document.getElementById(chartId).innerHTML = `<iframe src="https://s.tradingview.com/widgetembed/?symbol=${tvSymbol}&theme=light" style="width:100%; height:100%; border:none;"></iframe>`;
-        }
+        } catch(e) {}
       }, 150);
     });
   }
 
-  carregarDados();
-</script>
+  // PWA Service Worker Registration
+  if ('serviceWorker' in navigator) {
+    const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });`;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+  }
 
+  carregarMercado();
+</script>
 </body>
 </html>
