@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plano 50 - Gestor de Investimentos v4</title>
+  <title>Plano 50 - Real Time & Charts v5</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -14,7 +14,6 @@
       --primary: #3b82f6;
       --success: #10b981;
       --warning: #f59e0b;
-      --danger: #ef4444;
       --border: #334155;
     }
     * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
@@ -23,7 +22,12 @@
     .header { text-align: center; margin-bottom: 20px; position: relative; }
     .header h1 { font-size: 1.5rem; color: var(--primary); }
     .header p { font-size: 0.85rem; color: var(--muted); }
-    .btn-eye { position: absolute; right: 0; top: 0; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+    
+    .status-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; font-size: 0.75rem; color: var(--muted); }
+    .pulse-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success); margin-right: 4px; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .btn-eye { position: absolute; right: 0; top: 0; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; cursor: pointer; }
 
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
     .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
@@ -36,14 +40,14 @@
     .stat-box label { font-size: 0.75rem; color: var(--muted); display: block; }
     .stat-box span { font-size: 1.1rem; font-weight: 700; }
 
-    .asset-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .asset-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
     .asset-row:last-child { border-bottom: none; }
+    .asset-row:hover { background: rgba(255,255,255,0.02); }
 
     .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: var(--border); color: var(--muted); }
-    .tag-standby { background: var(--warning); color: #000; font-weight: 600; }
     .tag-opportunity { background: var(--success); color: #fff; font-weight: 600; font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
 
-    .chart-container { position: relative; height: 220px; width: 100%; }
+    .chart-container { position: relative; height: 200px; width: 100%; }
     
     .form-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
     input, select, button { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; font-size: 0.85rem; }
@@ -56,136 +60,90 @@
   <div class="header">
     <button class="btn-eye" onclick="togglePrivacidade()" id="btnEye">👁️</button>
     <h1>🎯 Plano R$ 50/mês</h1>
-    <p>Plataforma Completa de Gestão & Inteligência</p>
+    <p>Tempo Real & Gráficos Individuais</p>
+  </div>
+
+  <!-- STATUS DO TEMPO REAL -->
+  <div class="status-bar">
+    <div><span class="pulse-dot"></span> Tempo Real Ativo</div>
+    <div id="txtTimer">Próxima atualização: 15s</div>
   </div>
 
   <!-- CHECK-IN MENSAL -->
   <div class="card">
     <button class="btn-checkin" onclick="fazerCheckinMensal()">⚡ Check-in Aporte do Mês (R$ 50)</button>
-    <p style="font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 8px;">
-      Rebalanceia e compra: 2 GARE11 + 2 GGRC11 + Sobra em CPLE3
-    </p>
   </div>
 
   <!-- RESUMO DE PATRIMÔNIO -->
   <div class="card">
     <div class="grid-stats">
       <div class="stat-box">
-        <label>Patrimônio Total</label>
-        <span class="val-mask" id="txtTotal">R$ 0,00</span>
+        <label>Patrimônio (Tempo Real)</label>
+        <span id="txtTotal">R$ 0,00</span>
       </div>
       <div class="stat-box">
         <label>Total Aportado</label>
-        <span class="val-mask" id="txtAportado">R$ 0,00</span>
+        <span id="txtAportado">R$ 0,00</span>
       </div>
     </div>
   </div>
 
-  <!-- BOLA DE NEVE & DIVIDENDOS -->
+  <!-- GRÁFICO INDIVIDUAL DO ATIVO SELECIONADO -->
   <div class="card">
-    <div class="card-title">💰 Proventos & Efeito Bola de Neve</div>
-    <div class="grid-stats">
-      <div class="stat-box">
-        <label>Renda Mensal Estimada</label>
-        <span class="val-mask" id="txtDividendos" style="color: var(--success);">R$ 0,00</span>
-      </div>
-      <div class="stat-box">
-        <label>Meta Reinvestimento</label>
-        <span id="txtMetaReinvestir">0% da cota</span>
-      </div>
+    <div class="card-title">
+      <span id="lblAtivoSelecionado">📈 Preço: GARE11</span>
+      <small style="font-size:0.75rem; color:var(--muted)">Clique em qualquer ativo abaixo</small>
     </div>
-    <p id="msgBolaDeNeve" style="font-size: 0.75rem; color: var(--muted); margin-top: 10px; text-align: center;"></p>
-  </div>
-
-  <!-- REBALANCEAMENTO SUGERIDO -->
-  <div class="card">
-    <div class="card-title">⚖️ Rebalanceamento Automático do Aporte</div>
-    <div id="sugestaoAporte" style="font-size: 0.85rem; color: var(--muted);">Calculando...</div>
-  </div>
-
-  <!-- GRÁFICOS -->
-  <div class="card">
-    <div class="card-title">📊 Alocação da Carteira</div>
     <div class="chart-container">
-      <canvas id="chartPie"></canvas>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">📈 Evolução dos Aportes</div>
-    <div class="chart-container">
-      <canvas id="chartLine"></canvas>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">🚀 Projeção Bola de Neve (36 Meses)</div>
-    <div class="chart-container">
-      <canvas id="chartProjeção"></canvas>
+      <canvas id="chartAtivo"></canvas>
     </div>
   </div>
 
   <!-- ATIVOS DO PLANO -->
   <div class="card">
-    <div class="card-title">💼 Ativos do Plano (Aportes Ativos)</div>
-    <div id="listaAtivosPlano">Carregando dados...</div>
+    <div class="card-title">💼 Ativos em Acompanhamento</div>
+    <div id="listaAtivosPlano">Carregando dados em tempo real...</div>
   </div>
 
-  <!-- ATIVOS EM ESPERA -->
+  <!-- ALOCAÇÃO DA CARTEIRA -->
   <div class="card">
-    <div class="card-title">
-      <span>⏸️ Ativos em Espera (Standby)</span>
-      <span class="tag tag-standby">Sem Aportes</span>
+    <div class="card-title">📊 Divisão do Patrimônio</div>
+    <div class="chart-container">
+      <canvas id="chartPie"></canvas>
     </div>
-    <div id="listaAtivosEspera">Carregando dados...</div>
   </div>
 
-  <!-- EDICÃO/AJUSTE MANUAL -->
+  <!-- CADASTRO MANUAL -->
   <div class="card">
-    <div class="card-title">⚙️ Cadastrar ou Ajustar Posição</div>
+    <div class="card-title">⚙️ Ajustar Posição</div>
     <div class="form-inputs">
-      <input type="text" id="inSymbol" placeholder="Ticker (Ex: DOT)" style="text-transform: uppercase;">
+      <input type="text" id="inSymbol" placeholder="Ticker (Ex: CPLE3)" style="text-transform: uppercase;">
       <input type="number" id="inQtd" placeholder="Qtd" step="any">
       <input type="number" id="inPM" placeholder="Preço Pago" step="any">
     </div>
-    <div class="form-inputs">
-      <select id="inTipo">
-        <option value="ATIVO">Ativo do Plano</option>
-        <option value="ESPERA">Em Espera (Standby)</option>
-        <option value="CRIPTO">Criptomoeda</option>
-      </select>
-      <button class="btn-sub" style="grid-column: span 2;" onclick="salvarManual()">Salvar Posição</button>
-    </div>
-  </div>
-
-  <!-- BACKUP DE DADOS -->
-  <div class="card">
-    <div class="card-title">💾 Backup & Exportação</div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-      <button class="btn-sec" onclick="exportarDados()">📥 Exportar Backup</button>
-      <button class="btn-sec" onclick="document.getElementById('fileInput').click()">📤 Importar Backup</button>
-    </div>
-    <input type="file" id="fileInput" style="display:none" onchange="importarDados(event)">
+    <button class="btn-sub" style="width:100%; margin-top:8px;" onclick="salvarManual()">Salvar Ativo</button>
   </div>
 
 <script>
   let modoOculto = false;
+  let timerSegundos = 15;
+  let ativoSelecionado = 'GARE11';
 
-  let carteira = JSON.parse(localStorage.getItem('plano50_carteira_v4')) || [
-    { symbol: 'GARE11', qtd: 1, pm: 8.10, status: 'ATIVO', dy: 0.011 },
-    { symbol: 'GGRC11', qtd: 1, pm: 9.13, status: 'ATIVO', dy: 0.010 },
-    { symbol: 'CPLE3',  qtd: 1, pm: 13.90, status: 'ATIVO', dy: 0.006 },
-    { symbol: 'COGN3',  qtd: 1, pm: 2.14, status: 'ESPERA', dy: 0.000 },
-    { symbol: 'HGBS11', qtd: 1, pm: 18.49, status: 'ESPERA', dy: 0.008 },
-    { symbol: 'DOT',    qtd: 2.1363, pm: 8.50, status: 'CRIPTO', dy: 0.000 }
+  let carteira = JSON.parse(localStorage.getItem('plano50_carteira_v5')) || [
+    { symbol: 'GARE11', qtd: 1, pm: 8.10, dy: 0.011 },
+    { symbol: 'GGRC11', qtd: 1, pm: 9.13, dy: 0.010 },
+    { symbol: 'CPLE3',  qtd: 1, pm: 13.90, dy: 0.006 },
+    { symbol: 'DOT',    qtd: 2.1363, pm: 8.50, dy: 0.000 }
   ];
 
-  let historicoAportes = JSON.parse(localStorage.getItem('plano50_historico_v4')) || [
+  let historicoAportes = JSON.parse(localStorage.getItem('plano50_historico_v5')) || [
     { data: 'Início', aporte: 60.26, total: 60.26 }
   ];
 
   let cotacoes = {};
-  let chartPieInst, chartLineInst, chartProjInst;
+  let historicoPrecosAtivo = {}; // Guarda últimos preços para o gráfico em tempo real
+
+  let chartPieInst, chartAtivoInst;
 
   function togglePrivacidade() {
     modoOculto = !modoOculto;
@@ -198,95 +156,54 @@
     return `R$ ${valor.toFixed(2)}`;
   }
 
-  async function carregarCotacoes() {
-    const tickersB3 = carteira.filter(c => c.status !== 'CRIPTO').map(c => c.symbol).join(',');
+  async function carregarCotacoesTempoReal() {
+    const tickersB3 = carteira.filter(c => c.symbol !== 'DOT').map(c => c.symbol).join(',');
     if (tickersB3) {
       try {
         const res = await fetch(`https://brapi.dev/api/quote/${tickersB3}`);
         const data = await res.json();
         if (data.results) {
-          data.results.forEach(item => { cotacoes[item.symbol] = item.regularMarketPrice; });
+          data.results.forEach(item => { 
+            cotacoes[item.symbol] = item.regularMarketPrice; 
+            registrarHistoricoPreco(item.symbol, item.regularMarketPrice);
+          });
         }
-      } catch(e) { console.log("Erro B3"); }
+      } catch(e) { console.log("Erro B3 API"); }
     }
 
     try {
       const resC = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=brl');
       const dataC = await resC.json();
-      if(dataC.polkadot) cotacoes['DOT'] = dataC.polkadot.brl;
-    } catch(e) { console.log("Erro Cripto"); }
+      if(dataC.polkadot) {
+        cotacoes['DOT'] = dataC.polkadot.brl;
+        registrarHistoricoPreco('DOT', dataC.polkadot.brl);
+      }
+    } catch(e) { console.log("Erro Cripto API"); }
 
     renderizar();
   }
 
-  function fazerCheckinMensal() {
-    const pGARE = cotacoes['GARE11'] || 8.10;
-    const pGGRC = cotacoes['GGRC11'] || 9.13;
-    const pCPLE = cotacoes['CPLE3'] || 13.90;
-
-    const custoGARE = pGARE * 2;
-    const custoGGRC = pGGRC * 2;
-    const sobra = 50.00 - (custoGARE + custoGGRC);
-    const qtdCPLE = sobra > 0 ? sobra / pCPLE : 0;
-
-    atualizarAtivo('GARE11', 2, pGARE);
-    atualizarAtivo('GGRC11', 2, pGGRC);
-    if(qtdCPLE > 0) atualizarAtivo('CPLE3', qtdCPLE, pCPLE);
-
-    const dataAtual = new Date().toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-    const totalAnterior = historicoAportes.length > 0 ? historicoAportes[historicoAportes.length - 1].total : 0;
-    
-    historicoAportes.push({ data: dataAtual, aporte: 50, total: totalAnterior + 50 });
-    salvarEstado();
-
-    alert("Check-in de R$ 50 realizado com sucesso!");
-    renderizar();
-  }
-
-  function atualizarAtivo(symbol, qtdAdd, preco) {
-    let item = carteira.find(c => c.symbol === symbol);
-    if (!item) {
-      item = { symbol, qtd: 0, pm: 0, status: 'ATIVO', dy: 0.008 };
-      carteira.push(item);
-    }
-    const novoTotalQtd = item.qtd + qtdAdd;
-    const novoPM = ((item.qtd * item.pm) + (qtdAdd * preco)) / novoTotalQtd;
-    item.qtd = novoTotalQtd;
-    item.pm = novoPM;
-  }
-
-  function salvarManual() {
-    const symbol = document.getElementById('inSymbol').value.toUpperCase().trim();
-    const qtd = parseFloat(document.getElementById('inQtd').value);
-    const pm = parseFloat(document.getElementById('inPM').value);
-    const status = document.getElementById('inTipo').value;
-
-    if (!symbol || isNaN(qtd)) return alert("Preencha Ticker e Quantidade");
-
-    let item = carteira.find(c => c.symbol === symbol);
-    if (item) {
-      item.qtd = qtd;
-      if (!isNaN(pm)) item.pm = pm;
-      item.status = status;
+  function registrarHistoricoPreco(symbol, preco) {
+    if (!historicoPrecosAtivo[symbol]) {
+      // Cria dados fictícios iniciais de variação para o gráfico não nascer vazio
+      historicoPrecosAtivo[symbol] = [preco * 0.98, preco * 0.99, preco * 0.995, preco];
     } else {
-      carteira.push({ symbol, qtd, pm: pm || 0, status, dy: 0.008 });
+      historicoPrecosAtivo[symbol].push(preco);
+      if (historicoPrecosAtivo[symbol].length > 10) historicoPrecosAtivo[symbol].shift(); // Mantém últimas 10 leituras
     }
+  }
 
-    salvarEstado();
-    document.getElementById('inSymbol').value = '';
-    document.getElementById('inQtd').value = '';
-    document.getElementById('inPM').value = '';
-    renderizar();
+  function selecionarAtivo(symbol) {
+    ativoSelecionado = symbol;
+    document.getElementById('lblAtivoSelecionado').innerText = `📈 Preço em Tempo Real: ${symbol}`;
+    renderizarGráficoAtivo();
   }
 
   function renderizar() {
     let patrimonioTotal = 0;
     let totalInvestido = 0;
-    let dividendosMensais = 0;
 
-    let htmlPlano = '';
-    let htmlEspera = '';
-
+    let htmlAtivos = '';
     let labelsPie = [];
     let dataPie = [];
 
@@ -298,148 +215,129 @@
       patrimonioTotal += valorTotal;
       totalInvestido += investido;
 
-      const estimativaDividendo = valorTotal * (item.dy || 0);
-      dividendosMensais += estimativaDividendo;
-
       if (valorTotal > 0) {
         labelsPie.push(item.symbol);
         dataPie.push(valorTotal);
       }
 
       const ehOportunidade = precoAtual > 0 && precoAtual < item.pm;
-      const tagOportunidade = ehOportunidade ? `<span class="tag-opportunity">🔥 Oportunidade</span>` : '';
+      const tagOportunidade = ehOportunidade ? `<span class="tag-opportunity">🔥 Abaixo PM</span>` : '';
 
-      const rowHtml = `
-        <div class="asset-row">
+      htmlAtivos += `
+        <div class="asset-row" onclick="selecionarAtivo('${item.symbol}')">
           <div>
-            <strong>${item.symbol}</strong> ${tagOportunidade} <span class="tag">${item.qtd.toFixed(4)} u</span><br>
-            <small style="color:var(--muted)">PM: ${fmtVal(item.pm)} | Atual: ${fmtVal(precoAtual)}</small>
+            <strong>${item.symbol}</strong> ${tagOportunidade} <span class="tag">${item.qtd.toFixed(2)} u</span><br>
+            <small style="color:var(--muted)">PM: ${fmtVal(item.pm)} | Tempo Real: ${fmtVal(precoAtual)}</small>
           </div>
           <div style="text-align:right;">
             <strong>${fmtVal(valorTotal)}</strong><br>
-            <small style="color:var(--success)">+${fmtVal(estimativaDividendo)}/mês</small>
+            <small style="color:${precoAtual >= item.pm ? 'var(--success)' : 'var(--warning)'}">
+              ${((precoAtual - item.pm) / (item.pm || 1) * 100).toFixed(1)}%
+            </small>
           </div>
         </div>
       `;
-
-      if (item.status === 'ATIVO') htmlPlano += rowHtml;
-      else htmlEspera += rowHtml;
     });
 
-    document.getElementById('listaAtivosPlano').innerHTML = htmlPlano;
-    document.getElementById('listaAtivosEspera').innerHTML = htmlEspera;
-
+    document.getElementById('listaAtivosPlano').innerHTML = htmlAtivos;
     document.getElementById('txtTotal').innerText = fmtVal(patrimonioTotal);
     document.getElementById('txtAportado').innerText = fmtVal(totalInvestido);
-    document.getElementById('txtDividendos').innerText = fmtVal(dividendosMensais);
 
-    const precoCotaBase = cotacoes['GARE11'] || 8.10;
-    const progressoReinvestir = Math.min((dividendosMensais / precoCotaBase) * 100, 100);
-    document.getElementById('txtMetaReinvestir').innerText = `${progressoReinvestir.toFixed(1)}% de 1 Cota`;
-
-    if (dividendosMensais >= precoCotaBase) {
-      document.getElementById('msgBolaDeNeve').innerText = "🎉 Excelente! Seus dividendos já compram +1 cota sem custos extras!";
-    } else {
-      const falta = precoCotaBase - dividendosMensais;
-      document.getElementById('msgBolaDeNeve').innerText = `Faltam ${fmtVal(falta)}/mês em dividendos para atingir o Efeito Bola de Neve.`;
-    }
-
-    const pGARE = cotacoes['GARE11'] || 8.10;
-    const pGGRC = cotacoes['GGRC11'] || 9.13;
-    const pCPLE = cotacoes['CPLE3'] || 13.90;
-    const sobra = 50.00 - ((pGARE * 2) + (pGGRC * 2));
-    const qtdCPLE = sobra > 0 ? (sobra / pCPLE).toFixed(2) : 0;
-
-    document.getElementById('sugestaoAporte').innerHTML = `
-      • <strong>2 cotas GARE11</strong> (${fmtVal(pGARE * 2)})<br>
-      • <strong>2 cotas GGRC11</strong> (${fmtVal(pGGRC * 2)})<br>
-      • <strong>${qtdCPLE} frações CPLE3</strong> (${fmtVal(Math.max(sobra, 0))})
-    `;
-
-    renderizarGraficos(labelsPie, dataPie);
-    renderizarProjeção36Meses(patrimonioTotal);
+    renderizarGraficoPizza(labelsPie, dataPie);
+    renderizarGráficoAtivo();
   }
 
-  function renderizarGraficos(labels, data) {
+  function renderizarGraficoPizza(labels, data) {
     const ctxPie = document.getElementById('chartPie').getContext('2d');
     if (chartPieInst) chartPieInst.destroy();
     chartPieInst = new Chart(ctxPie, {
       type: 'pie',
-      data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] }] },
+      data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'] }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } }
     });
+  }
 
-    const ctxLine = document.getElementById('chartLine').getContext('2d');
-    if (chartLineInst) chartLineInst.destroy();
-    chartLineInst = new Chart(ctxLine, {
+  function renderizarGráficoAtivo() {
+    const dadosHistorico = historicoPrecosAtivo[ativoSelecionado] || [0];
+    const labels = dadosHistorico.map((_, i) => `Check ${i + 1}`);
+
+    const ctxAtivo = document.getElementById('chartAtivo').getContext('2d');
+    if (chartAtivoInst) chartAtivoInst.destroy();
+    chartAtivoInst = new Chart(ctxAtivo, {
       type: 'line',
       data: {
-        labels: historicoAportes.map(h => h.data),
-        datasets: [{ label: 'Total Aportado (R$)', data: historicoAportes.map(h => h.total), borderColor: '#10b981', tension: 0.2, fill: false }]
+        labels: labels,
+        datasets: [{
+          label: `Cotação (${ativoSelecionado})`,
+          data: dadosHistorico,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          fill: true,
+          tension: 0.2
+        }]
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f8fafc' } } } }
     });
   }
 
-  function renderizarProjeção36Meses(patrimonioAtual) {
-    const labelsProj = [];
-    const dataProj = [];
-    let saldoSimulado = patrimonioAtual;
-    const taxaRendimentoMensal = 0.008;
+  function fazerCheckinMensal() {
+    const pGARE = cotacoes['GARE11'] || 8.10;
+    const pGGRC = cotacoes['GGRC11'] || 9.13;
+    const pCPLE = cotacoes['CPLE3'] || 13.90;
 
-    for (let mes = 1; mes <= 36; mes++) {
-      saldoSimulado = (saldoSimulado + 50) * (1 + taxaRendimentoMensal);
-      if (mes % 3 === 0 || mes === 1 || mes === 36) {
-        labelsProj.push(`Mês ${mes}`);
-        dataProj.push(saldoSimulado.toFixed(2));
-      }
+    atualizarAtivo('GARE11', 2, pGARE);
+    atualizarAtivo('GGRC11', 2, pGGRC);
+    const sobra = 50.00 - ((pGARE * 2) + (pGGRC * 2));
+    if(sobra > 0) atualizarAtivo('CPLE3', sobra / pCPLE, pCPLE);
+
+    salvarEstado();
+    alert("Aporte registrado com cotações em tempo real!");
+    renderizar();
+  }
+
+  function atualizarAtivo(symbol, qtdAdd, preco) {
+    let item = carteira.find(c => c.symbol === symbol);
+    if (item) {
+      const novoTotal = item.qtd + qtdAdd;
+      item.pm = ((item.qtd * item.pm) + (qtdAdd * preco)) / novoTotal;
+      item.qtd = novoTotal;
+    }
+  }
+
+  function salvarManual() {
+    const symbol = document.getElementById('inSymbol').value.toUpperCase().trim();
+    const qtd = parseFloat(document.getElementById('inQtd').value);
+    const pm = parseFloat(document.getElementById('inPM').value);
+
+    if (!symbol || isNaN(qtd)) return alert("Preencha Ticker e Quantidade");
+
+    let item = carteira.find(c => c.symbol === symbol);
+    if (item) {
+      item.qtd = qtd;
+      if (!isNaN(pm)) item.pm = pm;
+    } else {
+      carteira.push({ symbol, qtd, pm: pm || 0, dy: 0.008 });
     }
 
-    const ctxProj = document.getElementById('chartProjeção').getContext('2d');
-    if (chartProjInst) chartProjInst.destroy();
-    chartProjInst = new Chart(ctxProj, {
-      type: 'line',
-      data: {
-        labels: labelsProj,
-        datasets: [{ label: 'Patrimônio Estimado (R$)', data: dataProj, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f8fafc' } } } }
-    });
+    salvarEstado();
+    renderizar();
   }
 
   function salvarEstado() {
-    localStorage.setItem('plano50_carteira_v4', JSON.stringify(carteira));
-    localStorage.setItem('plano50_historico_v4', JSON.stringify(historicoAportes));
+    localStorage.setItem('plano50_carteira_v5', JSON.stringify(carteira));
   }
 
-  function exportarDados() {
-    const dados = { carteira, historicoAportes };
-    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup_plano50_${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-  }
+  // LOOP DE TEMPO REAL (15 SEGUNDOS)
+  setInterval(() => {
+    timerSegundos--;
+    if (timerSegundos <= 0) {
+      timerSegundos = 15;
+      carregarCotacoesTempoReal();
+    }
+    document.getElementById('txtTimer').innerText = `Próxima atualização: ${timerSegundos}s`;
+  }, 1000);
 
-  function importarDados(e) {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      try {
-        const dados = JSON.parse(event.target.result);
-        if (dados.carteira && dados.historicoAportes) {
-          carteira = dados.carteira;
-          historicoAportes = dados.historicoAportes;
-          salvarEstado();
-          renderizar();
-          alert("Backup importado com sucesso!");
-        }
-      } catch(err) { alert("Arquivo JSON inválido."); }
-    };
-    reader.readAsText(e.target.files[0]);
-  }
-
-  carregarCotacoes();
+  carregarCotacoesTempoReal();
 </script>
 </body>
 </html>
