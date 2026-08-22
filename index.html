@@ -3,578 +3,306 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InvestApp Ultra</title>
-  <!-- PWA Manifest Inline Data -->
-  <link rel="manifest" href='data:application/manifest+json,{"name":"InvestApp Pro","short_name":"InvestApp","start_url":".","display":"standalone","background_color":"#f4f6f9","theme_color":"#2563eb"}'>
-  
+  <title>Plano 50 - Gestor de Investimentos</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg: #f4f6f9;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --primary: #2563eb;
-      --primary-light: #eff6ff;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #3b82f6;
       --success: #10b981;
-      --success-bg: #d1fae5;
       --warning: #f59e0b;
-      --warning-bg: #fef3c7;
-      --danger: #ef4444;
-      --danger-bg: #fee2e2;
+      --border: #334155;
     }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); padding: 16px; padding-bottom: 40px; }
+    
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h1 { font-size: 1.5rem; color: var(--primary); }
+    .header p { font-size: 0.85rem; color: var(--muted); }
 
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text-main); margin: 0; padding-bottom: 90px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
 
-    header { padding: 18px 20px 10px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border); margin-bottom: 15px; }
-    .greeting { font-size: 1.3rem; font-weight: 700; margin: 0; color: var(--text-main); }
+    .btn-checkin { width: 100%; background: var(--success); color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+    .btn-checkin:hover { opacity: 0.9; }
 
-    .card { background: var(--card-bg); border-radius: 16px; padding: 18px; margin: 0 20px 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid var(--border); }
-    .card-title { font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-
-    .wallet-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
-    .wallet-stat { background: var(--bg); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
-    .wallet-stat label { font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600; }
-    .wallet-stat span { font-size: 0.95rem; font-weight: 700; }
-
-    .form-group { display: flex; flex-direction: column; gap: 8px; }
-    input, select, button { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; outline: none; }
-    input:focus, select:focus { border-color: var(--primary); }
-    .btn-main { background: var(--primary); color: #fff; border: none; cursor: pointer; font-weight: 700; }
-    .btn-sec { background: var(--bg); color: var(--text-main); border: 1px solid var(--border); cursor: pointer; font-weight: 600; }
-
-    .pill-container { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 10px 20px; scrollbar-width: none; }
-    .pill { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; cursor: pointer; }
-    .pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-box { background: var(--bg); padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+    .stat-box label { font-size: 0.75rem; color: var(--muted); display: block; }
+    .stat-box span { font-size: 1.1rem; font-weight: 700; }
 
     .asset-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
     .asset-row:last-child { border-bottom: none; }
-    .badge { padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; }
-    .badge-gain { background: var(--success-bg); color: var(--success); }
-    .badge-loss { background: var(--danger-bg); color: var(--danger); }
 
-    .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .rank-item:last-child { border-bottom: none; }
-    .rank-pos { font-weight: 800; font-size: 0.9rem; color: var(--text-muted); width: 28px; }
-    .rank-pos.top3 { color: var(--primary); }
+    .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: var(--border); color: var(--muted); }
+    .tag-standby { background: var(--warning); color: #000; font-weight: 600; }
 
-    .btn-analyze { background: var(--primary-light); color: var(--primary); border: none; padding: 8px; border-radius: 8px; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; font-size: 0.8rem; }
-    .analysis-box { border-radius: 8px; padding: 10px; display: none; margin-top: 10px; font-size: 0.8rem; }
-    .verdict-good { background: var(--success-bg); color: #065f46; border: 1px solid var(--success); }
-    .verdict-wait { background: var(--warning-bg); color: #92400e; border: 1px solid var(--warning); }
-    .verdict-bad { background: var(--danger-bg); color: #991b1b; border: 1px solid var(--danger); }
-
-    .chart-container { height: 180px; width: 100%; border-radius: 8px; overflow: hidden; margin-top: 10px; background: #f8fafc; border: 1px solid var(--border); }
-
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); text-decoration: none; font-size: 0.7rem; font-weight: 600; cursor: pointer; }
-    .nav-item.active { color: var(--primary); }
-    .nav-icon { font-size: 1.2rem; margin-bottom: 2px; }
-
-    .page { display: none; }
-    .page.active { display: block; }
+    .chart-container { position: relative; height: 220px; width: 100%; }
+    
+    .form-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+    input, select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; font-size: 0.85rem; }
+    .btn-sub { background: var(--primary); color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
   </style>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
 
-  <header>
-    <h1 class="greeting">InvestApp Ultra ⚡</h1>
-  </header>
+  <div class="header">
+    <h1>🎯 Plano R$ 50/mês</h1>
+    <p>Acompanhamento de Metas & Cotações Automáticas</p>
+  </div>
 
-  <!-- PÁGINA 1: CARTEIRA & PROVENTOS -->
-  <main id="page-carteira" class="page active">
-    <div class="card">
-      <div class="card-title">💼 Total Patrimônio</div>
-      <div class="wallet-grid">
-        <div class="wallet-stat">
-          <label>Atual (R$)</label>
-          <span id="totalAtual">R$ 0,00</span>
-        </div>
-        <div class="wallet-stat">
-          <label>Lucro/Prejuízo</label>
-          <span id="totalLucro" class="badge">R$ 0,00</span>
-        </div>
-        <div class="wallet-stat">
-          <label>Proventos</label>
-          <span id="totalProventos" style="color:var(--success)">R$ 0,00</span>
-        </div>
+  <!-- BOTÃO DE CHECK-IN -->
+  <div class="card">
+    <button class="btn-checkin" onclick="fazerCheckinMensal()">⚡ Check-in Aporte do Mês (R$ 50)</button>
+    <p style="font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 8px;">
+      Executa a compra padrão: 2 GARE11 + 2 GGRC11 + Sobra em CPLE3
+    </p>
+  </div>
+
+  <!-- RESUMO DO PATRIMÔNIO -->
+  <div class="card">
+    <div class="grid-stats">
+      <div class="stat-box">
+        <label>Patrimônio Total</label>
+        <span id="txtTotal">R$ 0,00</span>
+      </div>
+      <div class="stat-box">
+        <label>Total Aportado</label>
+        <span id="txtAportado">R$ 0,00</span>
       </div>
     </div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">📊 Alocação de Ativos</div>
-      <div style="max-height: 200px; display: flex; justify-content: center;">
-        <canvas id="chartAlocacao"></canvas>
-      </div>
+  <!-- GRÁFICOS -->
+  <div class="card">
+    <div class="card-title">📊 Alocação da Carteira</div>
+    <div class="chart-container">
+      <canvas id="chartPie"></canvas>
     </div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">➕ Lançar Ativo</div>
-      <div class="form-group">
-        <div style="display:flex; gap:8px;">
-          <select id="inputTipo" style="width: 35%;">
-            <option value="CRIPTO">🪙 Cripto</option>
-            <option value="ACAO">🏢 Ação</option>
-            <option value="FII">🏢 FII</option>
-          </select>
-          <input type="text" id="inputSymbol" placeholder="Ticker (Ex: BTC, PETR4)" style="text-transform:uppercase; flex:1;">
-        </div>
-        <div style="display:flex; gap:8px;">
-          <input type="number" id="inputQtd" placeholder="Qtd" step="any" style="flex:1;">
-          <input type="number" id="inputPM" placeholder="Preço Pago (Unid)" step="any" style="flex:1;">
-        </div>
-        <button class="btn-main" onclick="adicionarOperacao()">Salvar Ativo</button>
-      </div>
+  <div class="card">
+    <div class="card-title">📈 Evolução do Patrimônio</div>
+    <div class="chart-container">
+      <canvas id="chartLine"></canvas>
     </div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">💰 Registrar Dividendos/Proventos</div>
-      <div class="form-group">
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="provSymbol" placeholder="Ticker (Ex: MXRF11)" style="text-transform:uppercase; flex:1;">
-          <input type="number" id="provValor" placeholder="Valor (R$)" step="any" style="flex:1;">
-        </div>
-        <button class="btn-sec" onclick="adicionarProvento()">Lançar Dividendos</button>
-      </div>
-    </div>
+  <!-- ATIVOS DO PLANO -->
+  <div class="card">
+    <div class="card-title">💼 Ativos do Plano (Aportes Ativos)</div>
+    <div id="listaAtivosPlano">Carregando dados...</div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">📦 Meus Ativos</div>
-      <div id="listaCarteiraReal">Carregando carteira...</div>
+  <!-- ATIVOS EM ESPERA -->
+  <div class="card">
+    <div class="card-title">
+      <span>⏸️ Ativos em Espera (Standby)</span>
+      <span class="tag tag-standby">Sem Aportes</span>
     </div>
+    <div id="listaAtivosEspera">Carregando dados...</div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">⚙️ Backup & Dados</div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-sec" style="flex:1;" onclick="exportarDados()">📥 Exportar JSON</button>
-        <button class="btn-sec" style="flex:1;" onclick="document.getElementById('importFile').click()">📤 Importar JSON</button>
-        <input type="file" id="importFile" style="display:none;" onchange="importarDados(event)" accept=".json">
-      </div>
+  <!-- ADICIONAR/AJUSTAR POSIÇÕES -->
+  <div class="card">
+    <div class="card-title">⚙️ Cadastrar ou Ajustar Posição</div>
+    <div class="form-inputs">
+      <input type="text" id="inSymbol" placeholder="Ticker (Ex: DOT)" style="text-transform: uppercase;">
+      <input type="number" id="inQtd" placeholder="Qtd" step="any">
+      <input type="number" id="inPM" placeholder="Preço Pago" step="any">
     </div>
-  </main>
-
-  <!-- PÁGINA 2: RADAR DE SINAIS -->
-  <main id="page-radar" class="page">
-    <div class="pill-container">
-      <button class="pill active" onclick="filtrarRadar('CRIPTO', this)">🪙 Criptos</button>
-      <button class="pill" onclick="filtrarRadar('ACAO', this)">🏢 Ações B3</button>
-      <button class="pill" onclick="filtrarRadar('FII', this)">🏢 FIIs</button>
+    <div class="form-inputs">
+      <select id="inTipo">
+        <option value="ATIVO">Ativo do Plano</option>
+        <option value="ESPERA">Em Espera (Standby)</option>
+        <option value="CRIPTO">Criptomoeda</option>
+      </select>
+      <button class="btn-sub" style="grid-column: span 2;" onclick="salvarManual()">Salvar Posição</button>
     </div>
-    <div id="listaRadar"></div>
-  </main>
-
-  <!-- PÁGINA 3: RANKINGS -->
-  <main id="page-ranking" class="page">
-    <div class="pill-container">
-      <button class="pill active" onclick="carregarRanking('ALTAS', this)">🚀 Altas Cripto</button>
-      <button class="pill" onclick="carregarRanking('MEMES', this)">🔥 Memecoins</button>
-      <button class="pill" onclick="carregarRanking('ACOES', this)">📊 Top B3</button>
-      <button class="pill" onclick="carregarRanking('FIIS', this)">🏢 FIIs (DY)</button>
-    </div>
-
-    <div class="card">
-      <div class="card-title" id="tituloRanking">🚀 Ranking de Mercado</div>
-      <div id="conteudoRanking">Carregando dados...</div>
-    </div>
-  </main>
-
-  <!-- NAV BOTTOM -->
-  <nav class="bottom-nav">
-    <div class="nav-item active" onclick="navegar('carteira', this)">
-      <span class="nav-icon">💼</span>
-      <span>Carteira</span>
-    </div>
-    <div class="nav-item" onclick="navegar('radar', this)">
-      <span class="nav-icon">⚡</span>
-      <span>Radar</span>
-    </div>
-    <div class="nav-item" onclick="navegar('ranking', this)">
-      <span class="nav-icon">🏆</span>
-      <span>Rankings</span>
-    </div>
-    <div class="nav-item" onclick="carregarMercado()">
-      <span class="nav-icon">🔄</span>
-      <span>Atualizar</span>
-    </div>
-  </nav>
+  </div>
 
 <script>
-  let moedasMercado = [];
-  let cotacoesB3 = {};
-  let cotacaoDolar = 5.60;
-  
-  let carteira = JSON.parse(localStorage.getItem('carteiraPro')) || [
-    { symbol: 'BTC', tipo: 'CRIPTO', qtd: 0.005, pm: 60000 },
-    { symbol: 'PETR4', tipo: 'ACAO', qtd: 100, pm: 35.50 }
+  // DADOS REAIS PRÉ-CARREGADOS
+  let carteira = JSON.parse(localStorage.getItem('plano50_carteira_v2')) || [
+    { symbol: 'GARE11', qtd: 1, pm: 8.10, status: 'ATIVO' },
+    { symbol: 'GGRC11', qtd: 1, pm: 9.13, status: 'ATIVO' },
+    { symbol: 'CPLE3', qtd: 1, pm: 13.90, status: 'ATIVO' },
+    { symbol: 'COGN3', qtd: 1, pm: 2.14, status: 'ESPERA' },
+    { symbol: 'HGBS11', qtd: 1, pm: 18.49, status: 'ESPERA' },
+    { symbol: 'DOT', qtd: 2.1363, pm: 8.50, status: 'CRIPTO' }
   ];
-  let proventos = JSON.parse(localStorage.getItem('proventosPro')) || 0;
 
-  let categoriaRadar = 'CRIPTO';
-  let rankingAtual = 'ALTAS';
-  let chartInstancia = null;
+  let historicoAportes = JSON.parse(localStorage.getItem('plano50_historico_v2')) || [
+    { data: 'Início', aporte: 60.26, total: 60.26 }
+  ];
 
-  function navegar(pagina, el) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    
-    document.getElementById(`page-${pagina}`).classList.add('active');
-    el.classList.add('active');
+  let cotacoes = {};
+  let chartPieInst, chartLineInst;
 
-    if(pagina === 'ranking') carregarRanking(rankingAtual);
-  }
+  async function carregarCotacoes() {
+    // Cotações B3 via BRAPI
+    const tickersB3 = carteira.filter(c => c.status !== 'CRIPTO').map(c => c.symbol).join(',');
+    if (tickersB3) {
+      try {
+        const res = await fetch(`https://brapi.dev/api/quote/${tickersB3}`);
+        const data = await res.json();
+        if (data.results) {
+          data.results.forEach(item => { cotacoes[item.symbol] = item.regularMarketPrice; });
+        }
+      } catch(e) { console.log("Erro B3"); }
+    }
 
-  function filtrarRadar(tipo, el) {
-    categoriaRadar = tipo;
-    document.querySelectorAll('#page-radar .pill').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    renderizarRadar();
-  }
-
-  async function carregarMercado() {
+    // Cotações Cripto via CoinGecko
     try {
-      // 1. Dólar
-      const resUsd = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=brl');
-      const dataUsd = await resUsd.json();
-      if(dataUsd.tether) cotacaoDolar = dataUsd.tether.brl;
+      const resC = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=brl');
+      const dataC = await resC.json();
+      if(dataC.polkadot) cotacoes['DOT'] = dataC.polkadot.brl;
+    } catch(e) { console.log("Erro Cripto"); }
 
-      // 2. Criptos
-      const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=150&page=1&sparkline=true');
-      moedasMercado = await res.json();
-
-      // 3. Ações/FIIs B3 via BRAPI (Inclusão de cotação real para ativos da B3)
-      const tickersB3 = carteira.filter(a => a.tipo !== 'CRIPTO').map(a => a.symbol).join(',');
-      if (tickersB3) {
-        try {
-          const resB3 = await fetch(`https://brapi.dev/api/quote/${tickersB3}`);
-          const dataB3 = await resB3.json();
-          if (dataB3.results) {
-            dataB3.results.forEach(item => {
-              cotacoesB3[item.symbol] = item.regularMarketPrice;
-            });
-          }
-        } catch(e) { console.log("BRAPI offline ou requisição com limite."); }
-      }
-
-      renderizarCarteira();
-      renderizarRadar();
-      carregarRanking(rankingAtual);
-    } catch(err) {
-      console.error("Erro ao sincronizar mercado", err);
-    }
+    renderizar();
   }
 
-  function adicionarOperacao() {
-    const tipo = document.getElementById('inputTipo').value;
-    const symbol = document.getElementById('inputSymbol').value.toUpperCase().trim();
-    const qtd = parseFloat(document.getElementById('inputQtd').value);
-    const pm = parseFloat(document.getElementById('inputPM').value);
+  function fazerCheckinMensal() {
+    const pGARE = cotacoes['GARE11'] || 8.10;
+    const pGGRC = cotacoes['GGRC11'] || 9.13;
+    const pCPLE = cotacoes['CPLE3'] || 13.90;
 
-    if (!symbol || isNaN(qtd) || isNaN(pm) || qtd <= 0) return alert("Preencha todos os campos.");
+    const custoGARE = pGARE * 2;
+    const custoGGRC = pGGRC * 2;
+    const sobra = 50.00 - (custoGARE + custoGGRC);
+    const qtdCPLE = sobra > 0 ? sobra / pCPLE : 0;
 
-    const idx = carteira.findIndex(a => a.symbol === symbol);
-    if (idx > -1) {
-      const totalAntigo = carteira[idx].qtd * carteira[idx].pm;
-      const totalNovo = qtd * pm;
-      const novaQtd = carteira[idx].qtd + qtd;
-      carteira[idx].pm = (totalAntigo + totalNovo) / novaQtd;
-      carteira[idx].qtd = novaQtd;
+    atualizarAtivo('GARE11', 2, pGARE);
+    atualizarAtivo('GGRC11', 2, pGGRC);
+    if(qtdCPLE > 0) atualizarAtivo('CPLE3', qtdCPLE, pCPLE);
+
+    const dataAtual = new Date().toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+    const totalAnterior = historicoAportes.length > 0 ? historicoAportes[historicoAportes.length - 1].total : 0;
+    
+    historicoAportes.push({ data: dataAtual, aporte: 50, total: totalAnterior + 50 });
+    localStorage.setItem('plano50_historico_v2', JSON.stringify(historicoAportes));
+    localStorage.setItem('plano50_carteira_v2', JSON.stringify(carteira));
+
+    alert("Check-in de R$ 50 realizado com sucesso!");
+    renderizar();
+  }
+
+  function atualizarAtivo(symbol, qtdAdd, preco) {
+    let item = carteira.find(c => c.symbol === symbol);
+    if (!item) {
+      item = { symbol, qtd: 0, pm: 0, status: 'ATIVO' };
+      carteira.push(item);
+    }
+    const novoTotalQtd = item.qtd + qtdAdd;
+    const novoPM = ((item.qtd * item.pm) + (qtdAdd * preco)) / novoTotalQtd;
+    item.qtd = novoTotalQtd;
+    item.pm = novoPM;
+  }
+
+  function salvarManual() {
+    const symbol = document.getElementById('inSymbol').value.toUpperCase().trim();
+    const qtd = parseFloat(document.getElementById('inQtd').value);
+    const pm = parseFloat(document.getElementById('inPM').value);
+    const status = document.getElementById('inTipo').value;
+
+    if (!symbol || isNaN(qtd)) return alert("Preencha Ticker e Quantidade");
+
+    let item = carteira.find(c => c.symbol === symbol);
+    if (item) {
+      item.qtd = qtd;
+      if (!isNaN(pm)) item.pm = pm;
+      item.status = status;
     } else {
-      carteira.push({ symbol, tipo, qtd, pm });
+      carteira.push({ symbol, qtd, pm: pm || 0, status });
     }
 
-    localStorage.setItem('carteiraPro', JSON.stringify(carteira));
-    document.getElementById('inputSymbol').value = '';
-    document.getElementById('inputQtd').value = '';
-    document.getElementById('inputPM').value = '';
-
-    carregarMercado();
+    localStorage.setItem('plano50_carteira_v2', JSON.stringify(carteira));
+    document.getElementById('inSymbol').value = '';
+    document.getElementById('inQtd').value = '';
+    document.getElementById('inPM').value = '';
+    renderizar();
   }
 
-  function adicionarProvento() {
-    const val = parseFloat(document.getElementById('provValor').value);
-    if (isNaN(val) || val <= 0) return alert("Digite um valor válido.");
-    proventos += val;
-    localStorage.setItem('proventosPro', JSON.stringify(proventos));
-    document.getElementById('provValor').value = '';
-    renderizarCarteira();
-  }
+  function renderizar() {
+    let patrimonioTotal = 0;
+    let totalInvestido = 0;
 
-  function removerAtivo(symbol) {
-    carteira = carteira.filter(a => a.symbol !== symbol);
-    localStorage.setItem('carteiraPro', JSON.stringify(carteira));
-    renderizarCarteira();
-  }
+    let htmlPlano = '';
+    let htmlEspera = '';
 
-  function renderizarCarteira() {
-    const container = document.getElementById('listaCarteiraReal');
-    if (carteira.length === 0) {
-      container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted);">Sua carteira está vazia.</p>';
-      return;
-    }
+    let labelsPie = [];
+    let dataPie = [];
 
-    let valorTotalAtualBRL = 0;
-    let valorTotalInvestidoBRL = 0;
-    let totalsByTipo = { CRIPTO: 0, ACAO: 0, FII: 0 };
+    carteira.forEach(item => {
+      const precoAtual = cotacoes[item.symbol] || item.pm || 0;
+      const valorTotal = item.qtd * precoAtual;
+      const investido = item.qtd * item.pm;
 
-    let html = carteira.map(item => {
-      let precoAtualUnitarioBRL = item.pm;
+      patrimonioTotal += valorTotal;
+      totalInvestido += investido;
 
-      if (item.tipo === 'CRIPTO') {
-        let m = moedasMercado.find(c => c.symbol.toUpperCase() === item.symbol);
-        if (m) precoAtualUnitarioBRL = m.current_price * cotacaoDolar;
-      } else if (cotacoesB3[item.symbol]) {
-        precoAtualUnitarioBRL = cotacoesB3[item.symbol];
+      if (valorTotal > 0) {
+        labelsPie.push(item.symbol);
+        dataPie.push(valorTotal);
       }
 
-      const totalInvestido = item.qtd * item.pm;
-      const totalAtual = item.qtd * precoAtualUnitarioBRL;
-      const lucroPrejuizo = totalAtual - totalInvestido;
-      const rentabilidadePct = totalInvestido > 0 ? (lucroPrejuizo / totalInvestido) * 100 : 0;
-
-      valorTotalAtualBRL += totalAtual;
-      valorTotalInvestidoBRL += totalInvestido;
-      totalsByTipo[item.tipo] = (totalsByTipo[item.tipo] || 0) + totalAtual;
-
-      const isProfit = lucroPrejuizo >= 0;
-
-      return `
+      const rowHtml = `
         <div class="asset-row">
           <div>
-            <strong>${item.symbol}</strong> <small style="color:var(--text-muted)">(${item.tipo})</small><br>
-            <span style="font-size:0.75rem; color:var(--text-muted);">Qtd: ${item.qtd} | PM: R$ ${item.pm.toFixed(2)}</span>
+            <strong>${item.symbol}</strong> <span class="tag">${item.qtd.toFixed(4)} u</span><br>
+            <small style="color:var(--muted)">PM: R$ ${item.pm.toFixed(2)} | Atual: R$ ${precoAtual.toFixed(2)}</small>
           </div>
           <div style="text-align:right;">
-            <div style="font-weight:700;">R$ ${totalAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-            <span class="badge ${isProfit ? 'badge-gain' : 'badge-loss'}">
-              ${isProfit ? '+' : ''}${rentabilidadePct.toFixed(2)}% (R$ ${lucroPrejuizo.toFixed(2)})
-            </span>
-            <span onclick="removerAtivo('${item.symbol}')" style="cursor:pointer; margin-left:8px; font-size:0.8rem;">🗑️</span>
+            <strong>R$ ${valorTotal.toFixed(2)}</strong>
           </div>
         </div>
       `;
-    }).join('');
 
-    container.innerHTML = html;
+      if (item.status === 'ATIVO') htmlPlano += rowHtml;
+      else htmlEspera += rowHtml;
+    });
 
-    const lucroGeral = valorTotalAtualBRL - valorTotalInvestidoBRL;
-    document.getElementById('totalAtual').innerText = `R$ ${valorTotalAtualBRL.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-    document.getElementById('totalProventos').innerText = `R$ ${proventos.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-    
-    const badgeLucro = document.getElementById('totalLucro');
-    badgeLucro.innerText = `R$ ${lucroGeral.toFixed(2)}`;
-    badgeLucro.className = `badge ${lucroGeral >= 0 ? 'badge-gain' : 'badge-loss'}`;
+    document.getElementById('listaAtivosPlano').innerHTML = htmlPlano || '<p style="font-size:0.8rem; color:var(--muted)">Nenhum aporte ativo ainda.</p>';
+    document.getElementById('listaAtivosEspera').innerHTML = htmlEspera || '<p style="font-size:0.8rem; color:var(--muted)">Nenhum ativo em espera.</p>';
 
-    renderizarGraficoAlocacao(totalsByTipo);
+    document.getElementById('txtTotal').innerText = `R$ ${patrimonioTotal.toFixed(2)}`;
+    document.getElementById('txtAportado').innerText = `R$ ${totalInvestido.toFixed(2)}`;
+
+    renderizarGraficos(labelsPie, dataPie);
   }
 
-  function renderizarGraficoAlocacao(totals) {
-    const ctx = document.getElementById('chartAlocacao').getContext('2d');
-    if (chartInstancia) chartInstancia.destroy();
-
-    chartInstancia = new Chart(ctx, {
-      type: 'doughnut',
+  function renderizarGraficos(labels, data) {
+    const ctxPie = document.getElementById('chartPie').getContext('2d');
+    if (chartPieInst) chartPieInst.destroy();
+    chartPieInst = new Chart(ctxPie, {
+      type: 'pie',
       data: {
-        labels: ['Criptos', 'Ações', 'FIIs'],
-        datasets: [{
-          data: [totals.CRIPTO || 0, totals.ACAO || 0, totals.FII || 0],
-          backgroundColor: ['#2563eb', '#10b981', '#f59e0b']
-        }]
+        labels: labels,
+        datasets: [{ data: data, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] }]
       },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom' } }
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } }
+    });
+
+    const ctxLine = document.getElementById('chartLine').getContext('2d');
+    if (chartLineInst) chartLineInst.destroy();
+
+    const labelsLine = historicoAportes.map(h => h.data);
+    const dataLine = historicoAportes.map(h => h.total);
+
+    chartLineInst = new Chart(ctxLine, {
+      type: 'line',
+      data: {
+        labels: labelsLine,
+        datasets: [{ label: 'Patrimônio Aportado (R$)', data: dataLine, borderColor: '#10b981', tension: 0.2, fill: false }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f8fafc' } } } }
     });
   }
 
-  // EXPORTAR & IMPORTAR BACKUP
-  function exportarDados() {
-    const data = JSON.stringify({ carteira, proventos });
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `InvestApp_Backup_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-  }
-
-  function importarDados(e) {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      try {
-        const imported = JSON.parse(event.target.result);
-        if (imported.carteira) {
-          carteira = imported.carteira;
-          proventos = imported.proventos || 0;
-          localStorage.setItem('carteiraPro', JSON.stringify(carteira));
-          localStorage.setItem('proventosPro', JSON.stringify(proventos));
-          carregarMercado();
-          alert("Backup restaurado com sucesso!");
-        }
-      } catch(err) { alert("Arquivo JSON inválido."); }
-    };
-    reader.readAsText(e.target.files[0]);
-  }
-
-  // RANKINGS
-  function carregarRanking(tipo, btn) {
-    rankingAtual = tipo;
-    if(btn) {
-      document.querySelectorAll('#page-ranking .pill').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-    }
-
-    const container = document.getElementById('conteudoRanking');
-    const titulo = document.getElementById('tituloRanking');
-    let dados = [];
-
-    if (tipo === 'ALTAS') {
-      titulo.innerText = "🚀 Maiores Altas 24h (Cripto)";
-      dados = [...moedasMercado]
-        .sort((a, b) => (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0))
-        .slice(0, 10)
-        .map(m => ({ name: m.name, symbol: m.symbol.toUpperCase(), val: `$${m.current_price}`, var: `${(m.price_change_percentage_24h || 0).toFixed(2)}%`, isGain: (m.price_change_percentage_24h || 0) >= 0 }));
-    } else if (tipo === 'MEMES') {
-      titulo.innerText = "🔥 Top Memecoins de Volume";
-      const memesLista = ['PEPE', 'SHIB', 'DOGE', 'BONK', 'WIF', 'FLOKI'];
-      dados = moedasMercado
-        .filter(m => memesLista.includes(m.symbol.toUpperCase()))
-        .sort((a, b) => b.total_volume - a.total_volume)
-        .map(m => ({ name: m.name, symbol: m.symbol.toUpperCase(), val: `$${m.current_price}`, var: `${(m.price_change_percentage_24h || 0).toFixed(2)}%`, isGain: (m.price_change_percentage_24h || 0) >= 0 }));
-    } else if (tipo === 'ACOES') {
-      titulo.innerText = "📊 Ações Mais Negociadas B3";
-      dados = [
-        { name: "Petrobras", symbol: "PETR4", val: "R$ 38,20", var: "+1.85%", isGain: true },
-        { name: "Vale", symbol: "VALE3", val: "R$ 61,50", var: "-0.40%", isGain: false },
-        { name: "Itaú Unibanco", symbol: "ITUB4", val: "R$ 34,10", var: "+0.92%", isGain: true }
-      ];
-    } else if (tipo === 'FIIS') {
-      titulo.innerText = "🏢 FIIs de Maior Dividend Yield";
-      dados = [
-        { name: "MXRF11", symbol: "MXRF11", val: "R$ 10,25", var: "12.8% DY", isGain: true },
-        { name: "HGLG11", symbol: "HGLG11", val: "R$ 161,00", var: "9.2% DY", isGain: true }
-      ];
-    }
-
-    container.innerHTML = dados.map((item, i) => `
-      <div class="rank-item">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="rank-pos ${i < 3 ? 'top3' : ''}">#${i + 1}</span>
-          <div><strong>${item.name}</strong> <small style="color:var(--text-muted)">(${item.symbol})</small></div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-weight:700;">${item.val}</div>
-          <span class="badge ${item.isGain ? 'badge-gain' : 'badge-loss'}">${item.var}</span>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  // RADAR DE SINAIS
-  function executarAnalise(idx, item) {
-    const box = document.getElementById(`analysis_box_${idx}`);
-    const prices = item.sparkline_in_7d ? item.sparkline_in_7d.price : [];
-    const change24h = item.price_change_percentage_24h || 0;
-
-    let veredito = "", motivo = "", classe = "";
-
-    if (prices.length >= 14) {
-      let gains = 0, losses = 0;
-      const slice = prices.slice(-15);
-      for (let i = 1; i < slice.length; i++) {
-        let diff = slice[i] - slice[i-1];
-        diff >= 0 ? gains += diff : losses += Math.abs(diff);
-      }
-      let rs = (gains / 14) / ((losses / 14) || 1);
-      let rsi = Math.round(100 - (100 / (1 + rs)));
-
-      if (rsi <= 35 || change24h <= -6) {
-        veredito = "🟢 PONTO DE COMPRA DETECTADO";
-        motivo = "O ativo está em região de sobrevenda (desconto).";
-        classe = "verdict-good";
-      } else if (rsi >= 65 || change24h >= 8) {
-        veredito = "🔴 NÃO COMPRAR AGORA";
-        motivo = "Preço esticado. Risco elevado de correção.";
-        classe = "verdict-bad";
-      } else {
-        veredito = "🟡 AGUARDAR CONFIRMAÇÃO";
-        motivo = "Ativo consolidado. Sem sinal claro no momento.";
-        classe = "verdict-wait";
-      }
-    } else {
-      veredito = "🟡 ANÁLISE DE TENDÊNCIA";
-      motivo = "Observe a estrutura de candles do gráfico antes de operar.";
-      classe = "verdict-wait";
-    }
-
-    box.className = `analysis-box ${classe}`;
-    box.innerHTML = `<strong>${veredito}</strong><div style="margin-top:4px;">${motivo}</div>`;
-    box.style.display = "block";
-  }
-
-  function resolverSimbolo(symbol, tipo) {
-    if (tipo === 'ACAO' || tipo === 'FII') return `BMFBOVESPA:${symbol}`;
-    return `BINANCE:${symbol}USDT`;
-  }
-
-  function renderizarRadar() {
-    const container = document.getElementById('listaRadar');
-    container.innerHTML = '';
-    let lista = [];
-
-    if (categoriaRadar === 'CRIPTO') {
-      lista = moedasMercado.slice(0, 10).map(m => ({ ...m, symbol: m.symbol.toUpperCase(), tipo: 'CRIPTO' }));
-    } else {
-      const padrao = categoriaRadar === 'ACAO' ? ['PETR4', 'VALE3', 'ITUB4'] : ['MXRF11', 'HGLG11'];
-      lista = padrao.map(s => ({ symbol: s, name: s, tipo: categoriaRadar }));
-    }
-
-    lista.forEach((item, idx) => {
-      const symbolUpper = item.symbol.toUpperCase();
-      const tvSymbol = resolverSimbolo(symbolUpper, item.tipo);
-      const chartId = `tv_chart_${symbolUpper}_${idx}`;
-
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
-        <div class="card-title">
-          <span>${item.name} (${symbolUpper})</span>
-          <span>${item.current_price ? '$' + item.current_price.toLocaleString('en-US') : ''}</span>
-        </div>
-        <button class="btn-analyze" onclick='executarAnalise(${idx}, ${JSON.stringify(item)})'>⚡ Analisar Ativo</button>
-        <div id="analysis_box_${idx}" class="analysis-box"></div>
-        <div id="${chartId}" class="chart-container"></div>
-      `;
-      container.appendChild(card);
-
-      setTimeout(() => {
-        try {
-          new TradingView.widget({
-            "autosize": true,
-            "symbol": tvSymbol,
-            "interval": "D",
-            "theme": "light",
-            "style": "1",
-            "locale": "br",
-            "container_id": chartId
-          });
-        } catch(e) {}
-      }, 150);
-    });
-  }
-
-  // PWA Service Worker Registration
-  if ('serviceWorker' in navigator) {
-    const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });`;
-    const blob = new Blob([swCode], { type: 'application/javascript' });
-    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
-  }
-
-  carregarMercado();
+  carregarCotacoes();
 </script>
 </body>
 </html>
